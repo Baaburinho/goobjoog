@@ -87,8 +87,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Android
               </a>
               <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); alert(lang === 'so' ? 'App-ka iOS dhowaan ayuu imaanayaa!' : 'iOS App coming soon!'); }}
+                href="/GoobJoog-iOS.ipa"
+                download="GoobJoog-iOS.ipa"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm transition active:scale-95 touch-target"
                 title="Download iOS App"
               >
@@ -234,9 +234,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                       Android
                     </a>
                     <a
-                      href="#"
-                      onClick={(e) => { e.preventDefault(); alert(lang === 'so' ? 'App-ka iOS dhowaan ayuu imaanayaa!' : 'iOS App coming soon!'); }}
+                      href="/GoobJoog-iOS.ipa"
+                      download="GoobJoog-iOS.ipa"
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm transition active:scale-95"
+                      title="Download iOS App"
                     >
                       <Download size={14} />
                       iOS
