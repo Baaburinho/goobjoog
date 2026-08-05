@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Smartphone, Key, Mail, Lock, ArrowRight, Fingerprint, CheckCircle2, Eye, EyeOff, Globe } from 'lucide-react';
+import { User, Shield, Smartphone, Key, Mail, Lock, ArrowRight, Fingerprint, CheckCircle2, Eye, EyeOff, ScanFace } from 'lucide-react';
 import type { UserProfile } from '../domain/entities';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 import { translations } from '../lib/translations';
@@ -91,6 +91,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     }
   };
 
+  const handleAutofill = (demoUser: string, demoPass: string) => {
+    setLoginUsername(demoUser);
+    setLoginPassword(demoPass);
+  };
+
   const handleRegister = (e: React.FormEvent, isStaff: boolean) => {
     e.preventDefault();
     if (!fullName || !phone || !username || !password) {
@@ -122,7 +127,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         : `Registration successful! Welcome to GoobJoog.`
     );
     
-    // Reset form
     setFullName('');
     setEmail('');
     setPhone('');
@@ -133,11 +137,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 bg-slate-100 dark:bg-slate-950 transition-colors" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 bg-[#edf2f7] dark:bg-slate-950 transition-colors" dir={isArabic ? 'rtl' : 'ltr'}>
       
       {/* Dynamic database fallback notice */}
       {!isSupabaseConfigured && (
-        <div className="max-w-md md:max-w-4xl w-full mb-3 bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs px-4 py-2.5 rounded-xl shadow-sm flex items-center justify-between gap-3">
+        <div className="max-w-md md:max-w-4xl w-full mb-3 bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs px-4 py-2 rounded-2xl shadow-sm flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-medium">
             <span>⚠️</span>
             <span>
@@ -154,52 +158,51 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         </div>
       )}
 
-      {/* Main Responsive Split Card Container */}
-      <div className="max-w-md md:max-w-4xl w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden animate-fade-in relative grid grid-cols-1 md:grid-cols-2">
+      {/* Main Responsive Container */}
+      <div className="max-w-md md:max-w-4xl w-full bg-[#f4f7fb] dark:bg-slate-900 rounded-[2.5rem] shadow-[12px_12px_24px_#c5d0e0,-12px_-12px_24px_#ffffff] dark:shadow-none border border-white/80 dark:border-slate-800 overflow-hidden animate-fade-in relative grid grid-cols-1 md:grid-cols-2 p-3 sm:p-5 gap-4">
         
         {/* DESKTOP LEFT HERO PANEL */}
-        <div className="hidden md:flex flex-col justify-between p-8 lg:p-10 bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 text-white relative overflow-hidden">
-          {/* Abstract backdrop glows */}
-          <div className="absolute top-[-10%] left-[-10%] w-48 h-48 bg-indigo-500/30 rounded-full blur-3xl"></div>
+        <div className="hidden md:flex flex-col justify-between p-8 lg:p-10 bg-gradient-to-br from-[#3b66ac] via-[#4873b8] to-slate-900 text-white rounded-[2rem] relative overflow-hidden shadow-lg">
+          <div className="absolute top-[-10%] left-[-10%] w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-60 h-60 bg-emerald-500/20 rounded-full blur-3xl"></div>
           
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
-                <span className="text-2xl">🏠</span>
+              <div className="w-14 h-14 bg-white/95 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/40 shadow-md">
+                <span className="text-3xl">🏠</span>
               </div>
               <div>
-                <h1 className="text-2xl font-black tracking-wide text-white">GoobJoog</h1>
-                <p className="text-xs text-indigo-200 font-medium">House Renting System in Somalia</p>
+                <h1 className="text-3xl font-black tracking-wide text-white">GoobJoog</h1>
+                <p className="text-xs text-blue-100 font-medium">House Renting System in Somalia</p>
               </div>
             </div>
 
             <div className="space-y-4 pt-4">
-              <div className="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3.5 rounded-2xl border border-white/10">
-                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm p-3.5 rounded-2xl border border-white/20">
+                <CheckCircle2 className="text-emerald-300 shrink-0 mt-0.5" size={18} />
                 <div>
                   <h4 className="text-xs font-bold text-white">Direct Property Portals</h4>
-                  <p className="text-[11px] text-indigo-200 leading-relaxed">
+                  <p className="text-[11px] text-blue-100 leading-relaxed">
                     Connecting tenants, landlords, accountants & admins seamlessly across Somalia.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3.5 rounded-2xl border border-white/10">
-                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm p-3.5 rounded-2xl border border-white/20">
+                <CheckCircle2 className="text-emerald-300 shrink-0 mt-0.5" size={18} />
                 <div>
                   <h4 className="text-xs font-bold text-white">Somali Mobile Money Integration</h4>
-                  <p className="text-[11px] text-indigo-200 leading-relaxed">
+                  <p className="text-[11px] text-blue-100 leading-relaxed">
                     Instant automated payments via Waafi, EVC Plus, Zaad, and Sahal.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-white/5 backdrop-blur-sm p-3.5 rounded-2xl border border-white/10">
-                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm p-3.5 rounded-2xl border border-white/20">
+                <CheckCircle2 className="text-emerald-300 shrink-0 mt-0.5" size={18} />
                 <div>
                   <h4 className="text-xs font-bold text-white">Biometric & WebAuthn Ready</h4>
-                  <p className="text-[11px] text-indigo-200 leading-relaxed">
+                  <p className="text-[11px] text-blue-100 leading-relaxed">
                     Fast passwordless fingerprint and face identification for ultimate security.
                   </p>
                 </div>
@@ -207,38 +210,33 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
             </div>
           </div>
 
-          {/* Footer note inside left panel */}
-          <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-indigo-200">
+          <div className="relative z-10 pt-6 border-t border-white/20 flex items-center justify-between text-[11px] text-blue-100">
             <span>© {new Date().getFullYear()} GoobJoog Platform</span>
             <span className="font-semibold text-emerald-300">Somalia 🇸🇴</span>
           </div>
         </div>
 
-        {/* MOBILE & DESKTOP RIGHT FORM CONTAINER */}
-        <div className="flex flex-col justify-between p-5 sm:p-8 bg-white dark:bg-slate-900">
+        {/* NEUMORPHIC RIGHT FORM CONTAINER */}
+        <div className="flex flex-col justify-between p-4 sm:p-6 bg-[#f4f7fb] dark:bg-slate-900 rounded-[2rem]">
           
-          {/* Top Bar: Language Selector & Mobile Brand */}
-          <div>
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-              {/* Mobile Brand Title */}
-              <div className="flex items-center gap-2 md:hidden">
-                <span className="text-xl">🏠</span>
-                <span className="font-black text-slate-800 dark:text-slate-100 tracking-wide text-base">GoobJoog</span>
-              </div>
-              
-              <div className="hidden md:block text-xs font-semibold text-slate-400">
-                {activeMode === 'login' 
-                  ? (lang === 'so' ? 'Giriita' : 'Welcome back') 
-                  : (lang === 'so' ? 'Akaun cusub' : 'Create account')}
+          <div className="space-y-4">
+            
+            {/* Top Bar Header with Neumorphic Logo & Language Selector */}
+            <div className="flex items-center justify-between pb-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-[#f4f7fb] dark:bg-slate-800 flex items-center justify-center shadow-[4px_4px_8px_#d1d9e6,-4px_-4px_8px_#ffffff] dark:shadow-none border border-white/95 dark:border-slate-700">
+                  <span className="text-xl">🏠</span>
+                </div>
+                <span className="font-black text-slate-800 dark:text-slate-100 tracking-wide text-xl">GoobJoog</span>
               </div>
 
-              {/* Language Selector */}
-              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+              {/* Language Pills */}
+              <div className="flex items-center gap-1 bg-[#f4f7fb] dark:bg-slate-800 p-1.5 rounded-2xl shadow-[inset_2px_2px_4px_#d1d9e6,inset_-2px_-2px_4px_#ffffff] dark:shadow-none border border-slate-200/50 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => handleLangChange('so')}
-                  className={`px-2 py-1 text-[11px] font-bold rounded-lg transition ${
-                    lang === 'so' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                  className={`px-2 py-1 text-[10px] font-bold rounded-xl transition ${
+                    lang === 'so' ? 'bg-[#4873b8] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
                   🇸🇴 SO
@@ -246,8 +244,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 <button
                   type="button"
                   onClick={() => handleLangChange('en')}
-                  className={`px-2 py-1 text-[11px] font-bold rounded-lg transition ${
-                    lang === 'en' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                  className={`px-2 py-1 text-[10px] font-bold rounded-xl transition ${
+                    lang === 'en' ? 'bg-[#4873b8] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
                   🇬🇧 EN
@@ -255,8 +253,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 <button
                   type="button"
                   onClick={() => handleLangChange('ar')}
-                  className={`px-2 py-1 text-[11px] font-bold rounded-lg transition ${
-                    lang === 'ar' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                  className={`px-2 py-1 text-[10px] font-bold rounded-xl transition ${
+                    lang === 'ar' ? 'bg-[#4873b8] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
                   🇸🇦 AR
@@ -264,18 +262,18 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               </div>
             </div>
 
-            {/* Tab Toggle */}
+            {/* Inset Neumorphic Segmented Tab Toggle (Log In / Sign Up) */}
             {activeMode !== 'register_staff' && (
-              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl mb-5">
+              <div className="flex bg-[#f4f7fb] dark:bg-slate-800 p-1.5 rounded-2xl shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none border border-slate-200/40 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => {
                     setActiveMode('login');
                     setSignupStep('intent');
                   }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition ${
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition ${
                     activeMode === 'login' 
-                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm' 
+                      ? 'bg-[#4873b8] text-white shadow-md' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
                   }`}
                 >
@@ -287,9 +285,9 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     setActiveMode('register_public');
                     setSignupStep('intent');
                   }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition ${
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition ${
                     activeMode === 'register_public' 
-                      ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm' 
+                      ? 'bg-[#4873b8] text-white shadow-md' 
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
                   }`}
                 >
@@ -300,40 +298,40 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
             {/* LOGIN FORM */}
             {activeMode === 'login' && (
-              <form onSubmit={handleLogin} className="space-y-3.5">
+              <form onSubmit={handleLogin} className="space-y-4 pt-1">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-extrabold text-slate-800 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                     {t.username}
                   </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                  <div className="relative flex items-center">
+                    <User className="absolute left-3.5 text-slate-400" size={16} />
                     <input
                       type="text"
-                      placeholder={lang === 'so' ? 'Magacaaga (e.g. tenant, admin)' : 'e.g. tenant, admin'}
+                      placeholder={lang === 'so' ? 'e.g. tenant, admin' : 'e.g. tenant, admin'}
                       value={loginUsername}
                       onChange={(e) => setLoginUsername(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-slate-800 dark:text-slate-200 font-medium"
+                      className="w-full pl-10 pr-4 py-3 text-xs border border-slate-200/50 dark:border-slate-700 rounded-2xl bg-[#f4f7fb] dark:bg-slate-950 shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none focus:outline-none text-slate-800 dark:text-slate-100 font-medium"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-extrabold text-slate-800 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                     {t.password}
                   </label>
                   <div className="relative flex items-center">
-                    <Lock className="absolute left-3 text-slate-400" size={16} />
+                    <Lock className="absolute left-3.5 text-slate-400" size={16} />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full pl-9 pr-9 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition text-slate-800 dark:text-slate-200 font-medium"
+                      className="w-full pl-10 pr-10 py-3 text-xs border border-slate-200/50 dark:border-slate-700 rounded-2xl bg-[#f4f7fb] dark:bg-slate-950 shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none focus:outline-none text-slate-800 dark:text-slate-100 font-medium"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 text-slate-400 hover:text-slate-700 dark:text-slate-300 transition"
+                      className="absolute right-3.5 text-slate-400 hover:text-slate-700 dark:text-slate-300 transition"
                       aria-label="Toggle Password Visibility"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -341,56 +339,99 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   </div>
                 </div>
 
+                {/* Main Soft Raised Blue Log In Button */}
                 <button
                   type="submit"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 transition active:scale-98 text-xs tracking-wide mt-2"
+                  className="w-full bg-gradient-to-r from-[#4873b8] to-[#3b63a0] hover:opacity-95 text-white font-bold py-3 rounded-2xl shadow-[5px_5px_12px_#c3cddc,-5px_-5px_12px_#ffffff] dark:shadow-none transition active:scale-98 text-sm tracking-wide mt-2"
                 >
                   {t.login}
                 </button>
 
-                {/* BIOMETRIC LOGIN */}
-                <div className="pt-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1"></div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      {lang === 'so' ? 'ama farta/wajiga' : 'or biometric'}
-                    </span>
-                    <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1"></div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleFingerprintAuth}
-                    disabled={biometricLoading}
-                    className="w-full py-2.5 px-3 rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/50 text-emerald-800 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-98"
-                  >
-                    <Fingerprint size={16} className="text-emerald-600 dark:text-emerald-400" />
-                    <span>
-                      {biometricLoading
-                        ? (lang === 'so' ? 'Hubinayaa...' : 'Scanning...')
-                        : (lang === 'so' ? 'Biometric Login (Farta/Wajiga)' : 'Biometric Login')}
-                    </span>
-                  </button>
-                </div>
-
-                {/* DEMO ACCOUNTS BOX */}
-                <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-[10px] text-slate-600 dark:text-slate-400 space-y-1">
-                  <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">
-                    {lang === 'so' ? 'Koontooyinka Tijaabada (Demo):' : 'Quick Demo Credentials:'}
+                {/* OR Divider */}
+                <div className="flex items-center gap-2 py-1">
+                  <div className="h-px bg-slate-300 dark:bg-slate-800 flex-1"></div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    or
                   </span>
-                  <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
-                    <div>👤 tenant / tenant123</div>
-                    <div>🏡 landlord / landlord123</div>
-                    <div>📊 accountant / accountant123</div>
-                    <div>🛡️ admin / admin123</div>
+                  <div className="h-px bg-slate-300 dark:bg-slate-800 flex-1"></div>
+                </div>
+
+                {/* Raised Neumorphic Biometric Bar */}
+                <button
+                  type="button"
+                  onClick={handleFingerprintAuth}
+                  disabled={biometricLoading}
+                  className="w-full py-3 px-4 rounded-2xl bg-[#f4f7fb] dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-[5px_5px_10px_#c5d0e0,-5px_-5px_10px_#ffffff] dark:shadow-none hover:bg-slate-100 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-between transition active:scale-98"
+                >
+                  <Fingerprint size={20} className="text-[#4873b8] dark:text-indigo-400" />
+                  <span className="tracking-wide font-extrabold text-xs">
+                    {biometricLoading
+                      ? (lang === 'so' ? 'Hubinayaa...' : 'Scanning...')
+                      : (lang === 'so' ? 'Biometric Options (Farta/Wajiga)' : 'Biometric Options')}
+                  </span>
+                  <ScanFace size={20} className="text-[#4873b8] dark:text-indigo-400" />
+                </button>
+
+                {/* DEMO ACCOUNTS CARD WITH AUTOFILL BUTTONS */}
+                <div className="bg-[#f4f7fb] dark:bg-slate-800/80 rounded-2xl p-3 border border-slate-200/60 dark:border-slate-700 shadow-[inset_2px_2px_5px_#c8d3e6,inset_-2px_-2px_5px_#ffffff] dark:shadow-none space-y-2">
+                  <span className="font-extrabold text-slate-700 dark:text-slate-300 text-[11px] block text-center uppercase tracking-wider">
+                    Demo Accounts
+                  </span>
+
+                  <div className="space-y-2">
+                    {/* Tenant row */}
+                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+                        <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xs">👤</span>
+                        <span>Tenant</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAutofill('tenant', 'tenant123')}
+                        className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
+                      >
+                        Autofill
+                      </button>
+                    </div>
+
+                    {/* Landlord row */}
+                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+                        <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs">🏡</span>
+                        <span>Landlord</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAutofill('landlord', 'landlord123')}
+                        className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
+                      >
+                        Autofill
+                      </button>
+                    </div>
+
+                    {/* Admin row */}
+                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+                        <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">🛡️</span>
+                        <span>Admin</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAutofill('admin', 'admin123')}
+                        className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
+                      >
+                        Autofill
+                      </button>
+                    </div>
                   </div>
                 </div>
+
               </form>
             )}
 
             {/* PUBLIC SIGN UP */}
             {activeMode === 'register_public' && (
-              <div className="space-y-3">
+              <div className="space-y-3 pt-1">
                 {signupStep === 'intent' && (
                   <div className="space-y-3">
                     <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
@@ -404,11 +445,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                           setIntentRole('homeowner');
                           setSignupStep('form');
                         }}
-                        className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 bg-slate-50 dark:bg-slate-950 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 rounded-2xl transition text-left flex items-start gap-3 group"
+                        className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-[#4873b8] bg-white dark:bg-slate-950 rounded-2xl transition text-left flex items-start gap-3 shadow-sm group"
                       >
                         <span className="text-2xl">🏠</span>
                         <div>
-                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 block">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#4873b8] block">
                             {lang === 'so' ? 'Waxaan leeyahay guri' : 'I own a property'}
                           </span>
                           <span className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -423,11 +464,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                           setIntentRole('tenant');
                           setSignupStep('form');
                         }}
-                        className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 bg-slate-50 dark:bg-slate-950 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 rounded-2xl transition text-left flex items-start gap-3 group"
+                        className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-[#4873b8] bg-white dark:bg-slate-950 rounded-2xl transition text-left flex items-start gap-3 shadow-sm group"
                       >
                         <span className="text-2xl">🔍</span>
                         <div>
-                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 block">
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#4873b8] block">
                             {lang === 'so' ? 'Waxaan raadinayaa guri' : 'I am looking for a home'}
                           </span>
                           <span className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -441,50 +482,50 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
                 {signupStep === 'form' && (
                   <form onSubmit={(e) => handleRegister(e, false)} className="space-y-2.5">
-                    <div className="flex justify-between items-center pb-1 border-b border-slate-100 dark:border-slate-800">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between items-center pb-1 border-b border-slate-200 dark:border-slate-800">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                         {lang === 'so' ? 'Diiwaangelinta Xogtaada' : 'Personal Information'}
                       </span>
                       <button
                         type="button"
                         onClick={() => setSignupStep('intent')}
-                        className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold"
+                        className="text-[10px] text-[#4873b8] hover:underline font-bold"
                       >
                         {lang === 'so' ? 'Dib u Laabo' : 'Go Back'}
                       </button>
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.fullName} *</label>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.fullName} *</label>
                       <input
                         type="text"
                         placeholder="Abdi Omar"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                         required
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.email}</label>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.email}</label>
                         <input
                           type="email"
                           placeholder="name@example.so"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.phone} *</label>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.phone} *</label>
                         <input
                           type="text"
                           placeholder="25261XXXXXXX"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                           required
                         />
                       </div>
@@ -492,24 +533,24 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.username} *</label>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.username} *</label>
                         <input
                           type="text"
                           placeholder="abdi"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.password} *</label>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.password} *</label>
                         <input
                           type="password"
                           placeholder="••••••••"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                           required
                         />
                       </div>
@@ -517,7 +558,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
                     <button
                       type="submit"
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl shadow transition mt-2 text-xs flex items-center justify-center gap-1.5"
+                      className="w-full bg-[#4873b8] hover:bg-[#3b63a0] text-white font-bold py-2.5 rounded-xl shadow transition mt-2 text-xs flex items-center justify-center gap-1.5"
                     >
                       <span>{t.signup}</span>
                       <ArrowRight size={14} />
@@ -529,51 +570,51 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
             {/* STAFF SIGN UP */}
             {activeMode === 'register_staff' && (
-              <form onSubmit={(e) => handleRegister(e, true)} className="space-y-2.5">
-                <div className="flex justify-between items-center pb-1 border-b border-slate-100 dark:border-slate-800">
+              <form onSubmit={(e) => handleRegister(e, true)} className="space-y-2.5 pt-1">
+                <div className="flex justify-between items-center pb-1 border-b border-slate-200 dark:border-slate-800">
                   <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                    <Shield className="text-indigo-600" size={14} />
+                    <Shield className="text-[#4873b8]" size={14} />
                     {t.registerStaff}
                   </h3>
                   <button
                     type="button"
                     onClick={() => setActiveMode('login')}
-                    className="text-[10px] text-slate-500 dark:text-slate-400 hover:underline font-bold"
+                    className="text-[10px] text-slate-500 hover:underline font-bold"
                   >
                     {lang === 'so' ? 'Dib u laabo' : 'Back'}
                   </button>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.fullName} *</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.fullName} *</label>
                   <input
                     type="text"
                     placeholder="Eng. Huda"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.phone} *</label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.phone} *</label>
                     <input
                       type="text"
                       placeholder="25261XXXXXXX"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.role} *</label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.role} *</label>
                     <select
                       value={staffRole}
                       onChange={(e) => setStaffRole(e.target.value as any)}
-                      className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                     >
                       <option value="accountant">{t.accountant}</option>
                       <option value="administrator">{t.admin}</option>
@@ -583,24 +624,24 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.username} *</label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.username} *</label>
                     <input
                       type="text"
                       placeholder="huda_admin"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">{t.password} *</label>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.password} *</label>
                     <input
                       type="password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
                       required
                     />
                   </div>
@@ -608,7 +649,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold py-2 rounded-xl shadow transition mt-2 text-xs flex items-center justify-center gap-1.5"
+                  className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl shadow transition mt-2 text-xs flex items-center justify-center gap-1.5"
                 >
                   <Key size={14} />
                   {lang === 'so' ? 'Diiwaangeli Hawl-wadeenka' : 'Register Staff Member'}
@@ -619,16 +660,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           </div>
 
           {/* Bottom Footer Switcher */}
-          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+          <div className="pt-3 mt-3 border-t border-slate-200/80 dark:border-slate-800 text-center">
             {activeMode !== 'register_staff' ? (
               <button
                 type="button"
                 onClick={() => {
                   setActiveMode('register_staff');
                 }}
-                className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition font-semibold"
+                className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-[#4873b8] transition font-bold underline"
               >
-                🔒 {lang === 'so' ? 'Albaabka Hawl-wadeenada (Staff Portal)' : 'Administrative Staff Portal'}
+                🔒 {lang === 'so' ? 'Administrative Staff Portal' : 'Administrative Staff Portal'}
               </button>
             ) : (
               <button
@@ -636,7 +677,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 onClick={() => {
                   setActiveMode('login');
                 }}
-                className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition font-semibold"
+                className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-[#4873b8] transition font-bold underline"
               >
                 👤 {lang === 'so' ? 'Ku laabo Diiwaanka Macmiilka' : 'Return to Customer Sign In'}
               </button>
