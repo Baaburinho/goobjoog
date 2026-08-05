@@ -25,6 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeMenuModal, setActiveMenuModal] = useState<string | null>(null);
+  const [showIosModal, setShowIosModal] = useState(false);
   const isNative = Capacitor.isNativePlatform();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
@@ -86,15 +87,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Download size={14} />
                 Android
               </a>
-              <a
-                href="/GoobJoog-iOS.ipa"
-                download="GoobJoog-iOS.ipa"
+              <button
+                type="button"
+                onClick={() => setShowIosModal(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm transition active:scale-95 touch-target"
-                title="Download iOS App"
+                title="iOS App Installation Guide"
               >
                 <Download size={14} />
                 iOS
-              </a>
+              </button>
             </div>
           )}
 
@@ -233,15 +234,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <Download size={14} />
                       Android
                     </a>
-                    <a
-                      href="/GoobJoog-iOS.ipa"
-                      download="GoobJoog-iOS.ipa"
+                    <button
+                      type="button"
+                      onClick={() => setShowIosModal(true)}
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm transition active:scale-95"
-                      title="Download iOS App"
+                      title="iOS App Installation Guide"
                     >
                       <Download size={14} />
                       iOS
-                    </a>
+                    </button>
                   </div>
                 )}
 
@@ -389,17 +390,69 @@ export const Navbar: React.FC<NavbarProps> = ({
       {activeMenuModal === 'settings' && (
         <SettingsModal onClose={() => setActiveMenuModal(null)} currentUser={currentUser} lang={lang} />
       )}
-      {['help', 'about', 'privacy', 'terms'].includes(activeMenuModal || '') && (
-        <StaticPageModal 
-          onClose={() => setActiveMenuModal(null)} 
-          pageType={activeMenuModal as 'help' | 'about' | 'privacy' | 'terms'}
-          title={
-            activeMenuModal === 'help' ? 'Help Center' :
-            activeMenuModal === 'about' ? 'About GoobJoog' :
-            activeMenuModal === 'privacy' ? 'Privacy Policy' :
-            'Terms & Conditions'
-          }
-        />
+      {showIosModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative space-y-4">
+            <button
+              onClick={() => setShowIosModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-md">
+                📱
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                  {lang === 'so' ? 'Ku shubista iPhone / iPad (iOS App)' : 'iPhone / iPad Installation Guide'}
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  {lang === 'so' ? 'Ku dar GoobJoog shaashada iPhone-kaaga' : 'Add GoobJoog directly to your iPhone Home Screen'}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-700 dark:text-slate-300">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/50 rounded-2xl border border-indigo-200/50 dark:border-indigo-800/50 space-y-2">
+                <span className="font-bold text-indigo-900 dark:text-indigo-300 block text-xs">
+                  {lang === 'so' ? '📲 Habka Safari Add to Home Screen (Lagu Talinayo):' : '📲 Option 1: Add to Home Screen (Recommended):'}
+                </span>
+                <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-indigo-800 dark:text-indigo-200">
+                  <li>{lang === 'so' ? 'Fung web-ka Safari ku dhex jira iPhone-kaaga' : 'Open this website in Safari on your iPhone'}</li>
+                  <li>{lang === 'so' ? 'Riix batoonka Share (📤) ee hoose ku yaal Safari (ma ahan Files app)' : 'Tap Share (📤) at bottom of Safari (not Files app)'}</li>
+                  <li>{lang === 'so' ? 'Hoos u kiree oo riix "Add to Home Screen" (➕ Ku dar Shaashada)' : 'Scroll down and tap "Add to Home Screen" (➕)'}</li>
+                  <li>{lang === 'so' ? 'Riix "Add" ee sare right. App-ka ayaa toos ugu soo dhacaya shaashada!' : 'Tap "Add" at top right. The app icon appears natively!'}</li>
+                </ol>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                <span className="font-bold text-slate-800 dark:text-slate-200 block text-xs">
+                  {lang === 'so' ? '📦 Soo Dejinta Direct IPA (Dev Profile):' : '📦 Direct IPA Download:'}
+                </span>
+                <p className="text-[11px] text-slate-500">
+                  {lang === 'so' ? 'Faylka .IPA wuxuu u baahan yahay Apple TestFlight ama Profile si toos ah loo install-gareeyo.' : '.IPA files require Apple TestFlight or a developer profile.'}
+                </p>
+                <a
+                  href="/GoobJoog-iOS.ipa"
+                  download="GoobJoog-iOS.ipa"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white shadow-sm transition mt-1"
+                >
+                  <Download size={14} />
+                  {lang === 'so' ? 'Soo Dejiso GoobJoog-iOS.ipa' : 'Download GoobJoog-iOS.ipa'}
+                </a>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowIosModal(false)}
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition"
+            >
+              {lang === 'so' ? 'Gartay / Fahmay' : 'Got it'}
+            </button>
+          </div>
+        </div>
       )}
     </>
   );
