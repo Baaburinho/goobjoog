@@ -10,7 +10,7 @@ export default defineConfig({
   ],
   server: {
     watch: {
-      ignored: ['**/android/**', '**/ios/**', '**/dist/**']
+      ignored: ['**/android/**', '**/ios/**', '**/dist/**', '**/*.mp4']
     }
   }
 })

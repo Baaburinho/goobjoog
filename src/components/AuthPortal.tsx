@@ -161,10 +161,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       {/* Main Responsive Container */}
       <div className="max-w-md md:max-w-4xl w-full bg-[#f4f7fb] dark:bg-slate-900 rounded-[2.5rem] shadow-[12px_12px_24px_#c5d0e0,-12px_-12px_24px_#ffffff] dark:shadow-none border border-white/80 dark:border-slate-800 overflow-hidden animate-fade-in relative grid grid-cols-1 md:grid-cols-2 p-3 sm:p-5 gap-4">
         
-        {/* DESKTOP LEFT HERO PANEL */}
-        <div className="hidden md:flex flex-col justify-between p-8 lg:p-10 bg-gradient-to-br from-[#3b66ac] via-[#4873b8] to-slate-900 text-white rounded-[2rem] relative overflow-hidden shadow-lg">
-          <div className="absolute top-[-10%] left-[-10%] w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-60 h-60 bg-emerald-500/20 rounded-full blur-3xl"></div>
+        {/* DESKTOP LEFT HERO PANEL WITH BACKGROUND VIDEO */}
+        <div className="hidden md:flex flex-col justify-between p-8 lg:p-10 text-white rounded-[2rem] relative overflow-hidden shadow-lg group">
+          {/* Background Video */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
+          >
+            <source src="/login-bg.mp4" type="video/mp4" />
+          </video>
+
+          {/* Glassmorphic Gradient Overlay for Crisp Readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-indigo-950/75 to-indigo-900/60 backdrop-blur-[2px] z-0"></div>
           
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3">
