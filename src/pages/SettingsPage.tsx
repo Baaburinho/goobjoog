@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Settings, User, Shield, LogOut, CheckCircle2, 
   Globe, Moon, Sun, Bell, Database, Lock, Smartphone, 
   HelpCircle, FileText, RefreshCw, Key, Laptop, AlertTriangle, 
-  Check, ChevronRight, Mail, Phone, DollarSign, MapPin, ShieldCheck, HardDrive, Fingerprint
+  Check, ChevronRight, Mail, Phone, DollarSign, MapPin, ShieldCheck, HardDrive, Fingerprint,
+  Camera, Upload, Trash2
 } from 'lucide-react';
 import type { UserProfile } from '../domain/entities';
 import { checkBiometricHardwareSupport } from '../shared/utils/biometrics';
@@ -35,6 +36,46 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   const [fullName, setFullName] = useState(currentUser.fullName);
   const [phone, setPhone] = useState(currentUser.phone);
   const [email, setEmail] = useState(currentUser.email || '');
+
+  // File & Camera Avatar Upload Refs
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast(lang === 'so' ? 'Fadlan dooro sawir (JPEG/PNG)' : 'Please select an image file', true);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast(lang === 'so' ? 'Sawirku waa inuu ka yaryahay 5MB' : 'Image size must be less than 5MB', true);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl && onUpdateUser) {
+        onUpdateUser({ avatarUrl: dataUrl });
+        if (addAuditLog) {
+          addAuditLog('AVATAR_UPDATE', `User updated profile picture`);
+        }
+        showToast(lang === 'so' ? 'Sawirka profile-kaaga waa la cusbooneysiiyay!' : 'Profile picture updated successfully!');
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleRemoveAvatar = () => {
+    if (onUpdateUser) {
+      onUpdateUser({ avatarUrl: '' });
+      showToast(lang === 'so' ? 'Sawirka profile-ka waa la tirtiray' : 'Profile picture removed');
+    }
+  };
 
   // Password Form States
   const [currentPassword, setCurrentPassword] = useState('');
@@ -210,8 +251,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-white font-black text-2xl border-2 border-white/30 shadow-inner">
-              {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
+            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              {currentUser.avatarUrl ? (
+                <img 
+                  src={currentUser.avatarUrl} 
+                  alt={currentUser.fullName} 
+                  className="w-16 h-16 rounded-full object-cover border-2 border-white/80 shadow-md group-hover:opacity-90 transition"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-white/95 text-blue-700 backdrop-blur-md flex items-center justify-center font-black text-2xl border-2 border-white/30 shadow-inner group-hover:scale-105 transition">
+                  {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
+                </div>
+              )}
+              <div className="absolute bottom-0 right-0 bg-white text-blue-600 p-1 rounded-full shadow border border-slate-200" title="Change Photo">
+                <Camera size={12} />
+              </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -348,21 +402,77 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
                 <form onSubmit={handleProfileSave} className="space-y-4">
                   
-                  {/* Photo Change Mock */}
-                  <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow">
-                      {fullName ? fullName.charAt(0).toUpperCase() : 'U'}
+                  {/* Real Photo Upload / Take Photo Component */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    {/* Hidden inputs */}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      accept="image/*" 
+                      onChange={handleAvatarFileChange} 
+                      className="hidden" 
+                    />
+                    <input 
+                      type="file" 
+                      ref={cameraInputRef} 
+                      accept="image/*" 
+                      capture="user" 
+                      onChange={handleAvatarFileChange} 
+                      className="hidden" 
+                    />
+
+                    <div className="flex items-center gap-4">
+                      {currentUser.avatarUrl ? (
+                        <img 
+                          src={currentUser.avatarUrl} 
+                          alt={fullName} 
+                          className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow border-2 border-white/30">
+                          {fullName ? fullName.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                      )}
+
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          {lang === 'so' ? 'Sawirka Profile-ka' : lang === 'ar' ? 'الصورة الشخصية' : 'Profile Picture'}
+                        </h4>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          {lang === 'so' ? 'Sawirkaaga gallery-ga ka soo bixi ama toos kamarada kaga qaad (PNG/JPG < 5MB)' : 'Upload from gallery or snap a photo with camera (PNG/JPG < 5MB)'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">{lang === 'so' ? 'Sawirka Profile-ka' : 'Profile Avatar'}</h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mb-2">PNG or JPG up to 5MB</p>
+
+                    <div className="flex flex-wrap items-center gap-2">
                       <button 
                         type="button" 
-                        onClick={() => showToast(lang === 'so' ? 'Sawirka si guul leh ayaa loo dooraday!' : 'Avatar feature updated!')}
-                        className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-xs font-bold hover:bg-blue-100 transition"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition active:scale-95"
                       >
-                        {lang === 'so' ? 'Baddal Sawirka' : 'Upload New Photo'}
+                        <Upload size={13} />
+                        <span>{lang === 'so' ? 'Soo Dhig Sawir' : 'Upload Photo'}</span>
                       </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition active:scale-95"
+                      >
+                        <Camera size={13} />
+                        <span>{lang === 'so' ? 'Kamarada Ka Qaad' : 'Take Photo'}</span>
+                      </button>
+
+                      {currentUser.avatarUrl && (
+                        <button 
+                          type="button" 
+                          onClick={handleRemoveAvatar}
+                          className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 transition"
+                          title="Remove Photo"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
                     </div>
                   </div>
 

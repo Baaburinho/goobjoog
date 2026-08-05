@@ -305,9 +305,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     >
                       {/* Left: Avatar + Details */}
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-sm ${avatarStyle}`}>
-                          {firstLetter}
-                        </div>
+                        {u.avatarUrl ? (
+                          <img 
+                            src={u.avatarUrl} 
+                            alt={u.fullName} 
+                            className="w-10 h-10 rounded-full object-cover shadow-sm border border-slate-200" 
+                          />
+                        ) : (
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-sm ${avatarStyle}`}>
+                            {firstLetter}
+                          </div>
+                        )}
                         <div>
                           <div className="flex items-center gap-2">
                             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">{u.fullName}</h4>

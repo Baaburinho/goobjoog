@@ -224,8 +224,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </div>
             
-            <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-              <User size={13} className="text-slate-500 dark:text-slate-500" />
+            <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              {currentUser.avatarUrl ? (
+                <img 
+                  src={currentUser.avatarUrl} 
+                  alt={currentUser.fullName} 
+                  className="w-5 h-5 rounded-full object-cover border border-blue-500 shadow-sm" 
+                />
+              ) : (
+                <User size={13} className="text-slate-500 dark:text-slate-500" />
+              )}
               {currentUser.fullName}
             </span>
 

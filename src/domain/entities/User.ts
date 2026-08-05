@@ -9,5 +9,6 @@ export interface UserProfile {
   email: string;
   isVerified: boolean;
   username: string;
+  avatarUrl?: string;
   password?: string; // stored for mock authentication checks
 }
