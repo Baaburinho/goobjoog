@@ -106,10 +106,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       id: `usr_${Date.now()}`,
       username: username.toLowerCase(),
       password,
-      role: assignedRole,
+      roles: [assignedRole as any],
       fullName,
       email: email || `${username}@goobjoog.so`,
       phone,
+      isVerified: true
     };
 
     onRegisterUser(newUser);
