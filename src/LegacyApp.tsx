@@ -478,11 +478,12 @@ export default function LegacyApp() {
   // Auth Success Handlers
   const handleLoginSuccess = (user: UserProfile) => {
     setCurrentUser(user);
-    if (user.roles.includes('administrator')) {
+    const userRoles = user.roles || [];
+    if (userRoles.includes('administrator') || userRoles.includes('admin')) {
       setActiveLayout('administrator');
-    } else if (user.roles.includes('accountant')) {
+    } else if (userRoles.includes('accountant')) {
       setActiveLayout('accountant');
-    } else if (user.roles.includes('homeowner')) {
+    } else if (userRoles.includes('homeowner') || userRoles.includes('landlord')) {
       setActiveLayout('homeowner');
     } else {
       setActiveLayout('tenant');
@@ -1036,6 +1037,8 @@ export default function LegacyApp() {
         setLang={setLang} 
         onOpenSettings={() => setIsSettingsOpen(true)}
         onGoHome={() => setIsSettingsOpen(false)}
+        activeLayout={activeLayout}
+        setActiveLayout={setActiveLayout}
       />
 
       <main className="flex-1 w-full">

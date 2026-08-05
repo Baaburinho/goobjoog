@@ -13,6 +13,8 @@ interface NavbarProps {
   setLang: (lang: 'en' | 'so' | 'ar') => void;
   onOpenSettings?: () => void;
   onGoHome?: () => void;
+  activeLayout?: 'tenant' | 'homeowner' | 'accountant' | 'administrator';
+  setActiveLayout?: (layout: 'tenant' | 'homeowner' | 'accountant' | 'administrator') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
@@ -21,7 +23,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   lang, 
   setLang,
   onOpenSettings,
-  onGoHome
+  onGoHome,
+  activeLayout,
+  setActiveLayout
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeMenuModal, setActiveMenuModal] = useState<string | null>(null);
@@ -71,6 +75,62 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>GoobJoog</span>
             </span>
           </button>
+
+          {/* Navigation Role Tabs */}
+          {setActiveLayout && currentUser && (
+            <div className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 ml-3">
+              {((currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) && (
+                <button
+                  onClick={() => setActiveLayout('administrator')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+                    activeLayout === 'administrator' 
+                      ? 'bg-rose-600 text-white shadow-sm' 
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  <Shield size={13} />
+                  <span>{lang === 'so' ? 'Maamul' : 'Admin'}</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setActiveLayout('tenant')}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+                  activeLayout === 'tenant' 
+                    ? 'bg-blue-600 text-white shadow-sm' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                }`}
+              >
+                <span>🏠 {lang === 'so' ? 'Guriyaha' : 'Houses'}</span>
+              </button>
+
+              {((currentUser.roles || []).includes('homeowner') || (currentUser.roles || []).includes('landlord' as any) || (currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) && (
+                <button
+                  onClick={() => setActiveLayout('homeowner')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+                    activeLayout === 'homeowner' 
+                      ? 'bg-blue-600 text-white shadow-sm' 
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  <span>🏡 {lang === 'so' ? 'Mulkiile' : 'Landlord'}</span>
+                </button>
+              )}
+
+              {((currentUser.roles || []).includes('accountant') || (currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) && (
+                <button
+                  onClick={() => setActiveLayout('accountant')}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+                    activeLayout === 'accountant' 
+                      ? 'bg-amber-600 text-white shadow-sm' 
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  <span>📊 {lang === 'so' ? 'Xisaabiye' : 'Accountant'}</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Desktop View */}

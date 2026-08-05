@@ -146,14 +146,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setStaffPass('');
   };
 
+  const safeUsers = users || [];
+  const safeHouses = houses || [];
+  const safeComplaints = complaints || [];
+  const safeAudits = audits || [];
+
   // Filter users based on search
-  const filteredUsers = users.filter(u => {
+  const filteredUsers = safeUsers.filter(u => {
+    if (!u) return false;
     const term = userSearch.toLowerCase();
+    const rolesStr = (u.roles || []).join(', ').toLowerCase();
     return (
-      u.fullName.toLowerCase().includes(term) ||
-      u.username.toLowerCase().includes(term) ||
-      u.phone.includes(term) ||
-      u.roles.join(', ').toLowerCase().includes(term)
+      (u.fullName || '').toLowerCase().includes(term) ||
+      (u.username || '').toLowerCase().includes(term) ||
+      (u.phone || '').includes(term) ||
+      rolesStr.includes(term)
     );
   });
 
@@ -168,7 +175,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           <div>
             <div className="text-[10px] font-bold text-slate-400 uppercase">{lang === 'so' ? 'Macaamiisha' : lang === 'ar' ? 'مستخدمي النظام' : 'System Users'}</div>
-            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(users.length)} {lang === 'so' ? 'Kiciyey' : lang === 'ar' ? 'نشط' : 'Active'}</div>
+            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(safeUsers.length)} {lang === 'so' ? 'Kiciyey' : lang === 'ar' ? 'نشط' : 'Active'}</div>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-card shadow-sm flex items-center gap-4">
@@ -177,7 +184,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           <div>
             <div className="text-[10px] font-bold text-slate-400 uppercase">{t.listedProperties}</div>
-            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(houses.length)} {lang === 'so' ? 'Guri' : lang === 'ar' ? 'منزل' : 'Houses'}</div>
+            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(safeHouses.length)} {lang === 'so' ? 'Guri' : lang === 'ar' ? 'منزل' : 'Houses'}</div>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-card shadow-sm flex items-center gap-4">
@@ -186,7 +193,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           <div>
             <div className="text-[10px] font-bold text-slate-400 uppercase">{lang === 'so' ? 'Cawashooyinka' : lang === 'ar' ? 'الشكاوى والطلبات' : 'Complaints Lodged'}</div>
-            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(complaints.length)} {lang === 'so' ? 'Tikidh' : lang === 'ar' ? 'تذاكر' : 'Tickets'}</div>
+            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(safeComplaints.length)} {lang === 'so' ? 'Tikidh' : lang === 'ar' ? 'تذاكر' : 'Tickets'}</div>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-card shadow-sm flex items-center gap-4">
@@ -195,24 +202,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           <div>
             <div className="text-[10px] font-bold text-slate-400 uppercase">{t.dashboard}</div>
-            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(audits.length)} {lang === 'so' ? 'Diiwaan' : lang === 'ar' ? 'سجل' : 'Logs'}</div>
+            <div className="text-xl font-black text-slate-800 dark:text-slate-200 mt-0.5">{formatNumber(safeAudits.length)} {lang === 'so' ? 'Diiwaan' : lang === 'ar' ? 'سجل' : 'Logs'}</div>
           </div>
         </div>
       </div>
 
       {/* PENDING LANDLORD UPGRADE REQUESTS PANEL */}
-      {users.filter(u => u.upgradeStatus === 'pending').length > 0 && (
+      {safeUsers.filter(u => u && u.upgradeStatus === 'pending').length > 0 && (
         <div className="bg-amber-50/50 border border-amber-200 p-5 rounded-card shadow-sm animate-pulse-subtle">
           <h3 className="text-xs font-black text-amber-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
             <span>⏳</span> 
             {lang === 'so' 
-              ? `Codsiyada Dalacsiinta Mulkiilayaasha (${formatNumber(users.filter(u => u.upgradeStatus === 'pending').length)})`
+              ? `Codsiyada Dalacsiinta Mulkiilayaasha (${formatNumber(safeUsers.filter(u => u && u.upgradeStatus === 'pending').length)})`
               : lang === 'ar'
-              ? `طلبات ترقية الحساب إلى مالك عقار (${formatNumber(users.filter(u => u.upgradeStatus === 'pending').length)})`
-              : `Landlord Onboarding Verification Desk (${formatNumber(users.filter(u => u.upgradeStatus === 'pending').length)})`}
+              ? `طلبات ترقية الحساب إلى مالك عقار (${formatNumber(safeUsers.filter(u => u && u.upgradeStatus === 'pending').length)})`
+              : `Landlord Onboarding Verification Desk (${formatNumber(safeUsers.filter(u => u && u.upgradeStatus === 'pending').length)})`}
           </h3>
           <div className="flex flex-col gap-3">
-            {users.filter(u => u.upgradeStatus === 'pending').map(user => (
+            {safeUsers.filter(u => u && u.upgradeStatus === 'pending').map(user => (
               <div key={user.id} className="bg-white dark:bg-slate-900 border border-amber-200 p-3.5 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
                 <div>
                   <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">{user.fullName}</h4>
