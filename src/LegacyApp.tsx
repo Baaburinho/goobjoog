@@ -401,12 +401,26 @@ export default function LegacyApp() {
       const localComplaints = localStorage.getItem('goobjoog_complaints');
       const localAudits = localStorage.getItem('goobjoog_audits');
 
-      if (localUsers) setUsers(JSON.parse(localUsers));
-      if (localHouses) setHouses(JSON.parse(localHouses));
-      if (localApps) setApplications(JSON.parse(localApps));
-      if (localTxs) setTransactions(JSON.parse(localTxs));
-      if (localComplaints) setComplaints(JSON.parse(localComplaints));
-      if (localAudits) setAudits(JSON.parse(localAudits));
+      if (localUsers) {
+        try {
+          const parsed = JSON.parse(localUsers);
+          if (Array.isArray(parsed)) {
+            setUsers(parsed.map(u => ({
+              ...u,
+              roles: Array.isArray(u.roles) && u.roles.length > 0 
+                ? u.roles 
+                : [u.role || 'tenant']
+            })));
+          }
+        } catch (e) {
+          console.error("Failed parsing localUsers", e);
+        }
+      }
+      if (localHouses) { try { setHouses(JSON.parse(localHouses)); } catch (e) {} }
+      if (localApps) { try { setApplications(JSON.parse(localApps)); } catch (e) {} }
+      if (localTxs) { try { setTransactions(JSON.parse(localTxs)); } catch (e) {} }
+      if (localComplaints) { try { setComplaints(JSON.parse(localComplaints)); } catch (e) {} }
+      if (localAudits) { try { setAudits(JSON.parse(localAudits)); } catch (e) {} }
     };
 
     loadData();

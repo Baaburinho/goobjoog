@@ -198,7 +198,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* User Badge */}
           <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/90 dark:bg-slate-800/90 pl-3 pr-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm text-xs">
             <div className="flex flex-wrap gap-1">
-              {currentUser.roles.map((r: string) => {
+              {(Array.isArray(currentUser?.roles) ? currentUser.roles : [(currentUser as any)?.role || 'tenant']).map((r: string) => {
                 const roleStyle = 
                   r === 'administrator' ? 'bg-rose-500 text-white' :
                   r === 'accountant' ? 'bg-amber-500 text-white' :
