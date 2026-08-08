@@ -5,6 +5,7 @@ import type { House, Application, UserProfile } from '../domain/entities';
 import { HouseStatus, UserRole } from '../domain/enums';
 import { translations } from '../lib/translations';
 import { MapPicker } from '../components/MapPicker';
+import { requestAndGetCurrentLocation } from '../shared/utils/geolocation';
 
 interface LandlordDashboardProps {
   houses: House[];
@@ -158,30 +159,23 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
     setUploadedHashes([]);
   };
 
-  const handleGetCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert(lang === 'so' ? "Qalabkaagu ma taageerayo GPS-ka." : lang === 'ar' ? "جهازك لا يدعم تحديد الموقع عبر GPS." : "Geolocation is not supported by your browser.");
-      return;
-    }
+  const handleGetCurrentLocation = async () => {
     setIsGettingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setNewLat(position.coords.latitude);
-        setNewLng(position.coords.longitude);
-        setNewLocationSource('GPS_VERIFIED');
-        setIsGettingLocation(false);
-        alert(lang === 'so' ? `Goobta GPS-ka waa la xaqiijiyey: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}` :
-              lang === 'ar' ? `تم تحديد موقعك بدقة عبر GPS: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}` :
-              `GPS location captured: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
-      },
-      (error) => {
-        setIsGettingLocation(false);
-        alert(lang === 'so' ? "Lama heli karo goobtaada GPS-ka. Fadlan ka dooro khariidada." :
-              lang === 'ar' ? "تعذر جلب موقع GPS. يمكنك تحديده يدوياً من الخريطة." :
-              `Unable to retrieve your location. Please select it on the map.`);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+    try {
+      const coords = await requestAndGetCurrentLocation();
+      setNewLat(coords.latitude);
+      setNewLng(coords.longitude);
+      setNewLocationSource('GPS_VERIFIED');
+      setIsGettingLocation(false);
+      alert(lang === 'so' ? `Goobta GPS-ka waa la xaqiijiyey: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}` :
+            lang === 'ar' ? `تم تحديد موقعك بدقة عبر GPS: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}` :
+            `GPS location captured: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
+    } catch (error) {
+      setIsGettingLocation(false);
+      alert(lang === 'so' ? "Lama heli karo goobtaada GPS-ka. Fadlan u ogolaaw app-ka location permission ama ka dooro khariidada." :
+            lang === 'ar' ? "تعذر جلب موقع GPS. يمكنك تحديده يدوياً من الخريطة." :
+            `Unable to retrieve your location. Please check location permissions or select it on the map.`);
+    }
   };
 
   const formatNumber = (num: number, decimals: number = 0) => {
