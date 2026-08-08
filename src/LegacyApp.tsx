@@ -234,20 +234,20 @@ const INITIAL_AUDITS: AuditLog[] = [
 ];
 
 export default function LegacyApp() {
-  // Saved profile and biometric lock state
+  // Saved profile and biometric lock state (Strictly based on actual logged in user)
   const [savedUser, setSavedUser] = useState<UserProfile | null>(() => {
     try {
       const saved = localStorage.getItem('goobjoog_active_user');
-      return saved ? JSON.parse(saved) : INITIAL_USERS[1];
+      return saved ? JSON.parse(saved) : null;
     } catch (e) {
-      return INITIAL_USERS[1];
+      return null;
     }
   });
 
   const [isLocked, setIsLocked] = useState<boolean>(() => {
     const lockEnabled = localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
     const saved = localStorage.getItem('goobjoog_active_user');
-    return lockEnabled && !!(saved || INITIAL_USERS[1]);
+    return lockEnabled && !!saved;
   });
 
   // Authentication & Session State
