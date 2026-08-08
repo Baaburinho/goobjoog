@@ -23,11 +23,6 @@ export const AppRoutes = {
     Reports: '/admin/reports',
     Settings: '/admin/settings'
   },
-  Accountant: {
-    Dashboard: '/accountant',
-    Payments: '/accountant/payments',
-    Reports: '/accountant/reports'
-  },
   Global: {
     Settings: '/settings',
     Notifications: '/notifications',

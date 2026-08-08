@@ -65,7 +65,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [staffEmail, setStaffEmail] = useState('');
   const [staffUser, setStaffUser] = useState('');
   const [staffPass, setStaffPass] = useState('');
-  const [staffRole, setStaffRole] = useState<'administrator' | 'accountant'>('accountant');
+  const [staffRole, setStaffRole] = useState<'administrator'>('administrator');
 
   // Complaint state
   const [complaintNotes, setComplaintNotes] = useState<Record<string, string>>({});
@@ -241,7 +241,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex flex-wrap gap-1">
                       {u.roles.map(r => (
                         <span key={r} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 uppercase">
-                          {r === 'administrator' ? t.admin : r === 'accountant' ? t.accountant : r === 'homeowner' || r === 'landlord' ? t.landlord : t.tenant}
+                          {r === 'administrator' || r === 'admin' ? t.admin : r === 'homeowner' || r === 'landlord' ? t.landlord : t.tenant}
                         </span>
                       ))}
                     </div>
@@ -321,7 +321,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.editRolesBtn}</h3>
 
             <div className="space-y-2">
-              {['tenant', 'homeowner', 'accountant', 'administrator'].map(roleOption => (
+              {['tenant', 'homeowner', 'administrator'].map(roleOption => (
                 <label key={roleOption} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                   <input
                     type="checkbox"
@@ -336,7 +336,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     className="rounded text-blue-600"
                   />
                   <span>
-                    {roleOption === 'administrator' ? t.admin : roleOption === 'accountant' ? t.accountant : roleOption === 'homeowner' ? t.landlord : t.tenant}
+                    {roleOption === 'administrator' ? t.admin : roleOption === 'homeowner' ? t.landlord : t.tenant}
                   </span>
                 </label>
               ))}
@@ -482,7 +482,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onChange={(e) => setStaffRole(e.target.value as any)}
                     className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                   >
-                    <option value="accountant">{t.accountant}</option>
                     <option value="administrator">{t.admin}</option>
                   </select>
                 </div>

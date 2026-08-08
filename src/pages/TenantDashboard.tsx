@@ -25,8 +25,8 @@ interface TenantDashboardProps {
   onPaymentComplete: (txId: string, isSuccess: boolean, reason?: string, telecomRef?: string) => void;
   addAuditLog: (action: string, details: string) => void;
   lang: 'en' | 'so' | 'ar';
-  activeLayout: 'tenant' | 'homeowner' | 'accountant' | 'administrator';
-  setActiveLayout: (layout: 'tenant' | 'homeowner' | 'accountant' | 'administrator') => void;
+  activeLayout: 'tenant' | 'homeowner' | 'administrator';
+  setActiveLayout: (layout: 'tenant' | 'homeowner' | 'administrator') => void;
   onUpgradeToLandlord: () => void;
   selectedHouse: House | null;
   setSelectedHouse: (house: House | null) => void;

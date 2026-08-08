@@ -3,7 +3,6 @@ import type { UserProfile, House, Application, Transaction, Complaint, AuditLog 
 export const INITIAL_USERS: UserProfile[] = [
   { id: 'u1', fullName: 'Abdi Rahman Elmi', roles: ['homeowner'], upgradeStatus: 'none', phone: '+252615551234', email: 'abdi.elmi@goobjoog.so', isVerified: true, username: 'landlord', password: 'landlord123' },
   { id: 'u2', fullName: 'Faduma Omar Ali', roles: ['tenant'], upgradeStatus: 'none', phone: '+252617779876', email: 'faduma.omar@gmail.com', isVerified: true, username: 'tenant', password: 'tenant123' },
-  { id: 'u3', fullName: 'Ahmed Yasin Barre', roles: ['accountant'], upgradeStatus: 'none', phone: '+252612224444', email: 'yasin.accountant@goobjoog.so', isVerified: true, username: 'accountant', password: 'accountant123' },
   { id: 'u4', fullName: 'Eng. Huda Duale', roles: ['administrator'], upgradeStatus: 'none', phone: '+252619998888', email: 'huda.admin@goobjoog.so', isVerified: true, username: 'admin', password: 'admin123' }
 ];
 

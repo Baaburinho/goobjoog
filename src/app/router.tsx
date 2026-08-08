@@ -9,7 +9,7 @@ import { RoleProtectedRoute } from './guards/RoleProtectedRoute';
 // Layouts
 import { GuestLayout } from '../shared/layouts/GuestLayout';
 import { TenantLayout } from '../shared/layouts/TenantLayout';
-import { HomeownerLayout, AccountantLayout, AdminLayout } from '../shared/layouts/OtherLayouts';
+import { HomeownerLayout, AdminLayout } from '../shared/layouts/OtherLayouts';
 
 // System Pages
 import { NotFoundPage } from '../shared/components/pages/NotFoundPage';
@@ -68,20 +68,6 @@ export const router = createBrowserRouter([
             children: [
               { path: '', element: <Navigate to="/homeowner/dashboard" replace /> },
               { path: 'dashboard', element: <Placeholder name="Homeowner Dashboard" /> }
-            ]
-          }
-        ]
-      },
-      {
-        path: 'accountant',
-        element: <RoleProtectedRoute allowedRoles={['accountant']} />,
-        children: [
-          {
-            path: '',
-            element: <AccountantLayout />,
-            children: [
-              { path: '', element: <Navigate to="/accountant/dashboard" replace /> },
-              { path: 'dashboard', element: <Placeholder name="Accountant Dashboard" /> }
             ]
           }
         ]

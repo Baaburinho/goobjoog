@@ -2,7 +2,6 @@ export const UserRole = {
   Tenant: 'tenant',
   Homeowner: 'homeowner',
   Landlord: 'landlord',
-  Accountant: 'accountant',
   Administrator: 'administrator'
 } as const;
 export type UserRole = typeof UserRole[keyof typeof UserRole];

@@ -14,8 +14,8 @@ interface NavbarProps {
   setLang: (lang: 'en' | 'so' | 'ar') => void;
   onOpenSettings?: () => void;
   onGoHome?: () => void;
-  activeLayout?: 'tenant' | 'homeowner' | 'accountant' | 'administrator';
-  setActiveLayout?: (layout: 'tenant' | 'homeowner' | 'accountant' | 'administrator') => void;
+  activeLayout?: 'tenant' | 'homeowner' | 'administrator';
+  setActiveLayout?: (layout: 'tenant' | 'homeowner' | 'administrator') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
@@ -54,8 +54,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       case 'administrator':
       case 'admin':
         return t.admin;
-      case 'accountant':
-        return t.accountant;
       case 'homeowner':
       case 'landlord':
         return t.landlord;
@@ -136,19 +134,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span>🏡 {t.navLandlord}</span>
                   </button>
                 )}
-
-                {((currentUser.roles || []).includes('accountant') || (currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) && (
-                  <button
-                    onClick={() => setActiveLayout('accountant')}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
-                      activeLayout === 'accountant' 
-                        ? 'bg-amber-600 text-white shadow-sm' 
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <span>📊 {t.navAccountant}</span>
-                  </button>
-                )}
               </div>
             )}
           </div>
@@ -222,8 +207,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex flex-wrap gap-1">
                 {(Array.isArray(currentUser?.roles) ? currentUser.roles : [(currentUser as any)?.role || 'tenant']).map((r: string) => {
                   const roleStyle = 
-                    r === 'administrator' ? 'bg-rose-500 text-white' :
-                    r === 'accountant' ? 'bg-amber-500 text-white' :
+                    r === 'administrator' || r === 'admin' ? 'bg-rose-500 text-white' :
                     r === 'homeowner' || r === 'landlord' ? 'bg-blue-600 text-white' :
                     'bg-emerald-600 text-white';
 
@@ -358,8 +342,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex flex-wrap gap-1 mt-1">
                   {(currentUser.roles || ['tenant']).map((r: string) => {
                     const roleStyle = 
-                      r === 'administrator' ? 'bg-rose-500 text-white' :
-                      r === 'accountant' ? 'bg-amber-500 text-white' :
+                      r === 'administrator' || r === 'admin' ? 'bg-rose-500 text-white' :
                       r === 'homeowner' || r === 'landlord' ? 'bg-blue-600 text-white' :
                       'bg-emerald-600 text-white';
 

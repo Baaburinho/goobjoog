@@ -17,8 +17,8 @@ interface LandlordDashboardProps {
   onRejectApplication: (appId: string, feedback: string) => void;
   addAuditLog: (action: string, details: string) => void;
   lang: 'en' | 'so' | 'ar';
-  activeLayout: 'tenant' | 'homeowner' | 'accountant' | 'administrator';
-  setActiveLayout: (layout: 'tenant' | 'homeowner' | 'accountant' | 'administrator') => void;
+  activeLayout: 'tenant' | 'homeowner' | 'administrator';
+  setActiveLayout: (layout: 'tenant' | 'homeowner' | 'administrator') => void;
 }
 
 export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({

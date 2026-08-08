@@ -7,7 +7,6 @@ import { AuthPortal } from './components/AuthPortal';
 import { Navbar } from './components/Navbar';
 import { TenantDashboard } from './pages/TenantDashboard';
 import { LandlordDashboard } from './pages/LandlordDashboard';
-import { AccountantDashboard } from './pages/AccountantDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { SettingsPage } from './pages/SettingsPage';
 import { GoobJoogAI } from './components/GoobJoogAI';
@@ -18,7 +17,6 @@ import { GoobJoogAI } from './components/GoobJoogAI';
 const INITIAL_USERS: UserProfile[] = [
   { id: 'u1', fullName: 'Abdi Rahman Elmi', roles: ['homeowner'], upgradeStatus: 'none', phone: '+252615551234', email: 'abdi.elmi@goobjoog.so', isVerified: true, username: 'landlord', password: 'landlord123' },
   { id: 'u2', fullName: 'Faduma Omar Ali', roles: ['tenant'], upgradeStatus: 'none', phone: '+252617779876', email: 'faduma.omar@gmail.com', isVerified: true, username: 'tenant', password: 'tenant123' },
-  { id: 'u3', fullName: 'Ahmed Yasin Barre', roles: ['accountant'], upgradeStatus: 'none', phone: '+252612224444', email: 'yasin.accountant@goobjoog.so', isVerified: true, username: 'accountant', password: 'accountant123' },
   { id: 'u4', fullName: 'Eng. Huda Duale', roles: ['administrator'], upgradeStatus: 'none', phone: '+252619998888', email: 'huda.admin@goobjoog.so', isVerified: true, username: 'admin', password: 'admin123' }
 ];
 
@@ -255,7 +253,7 @@ export default function LegacyApp() {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);
 
-  const [activeLayout, setActiveLayout] = useState<'tenant' | 'homeowner' | 'accountant' | 'administrator'>('tenant');
+  const [activeLayout, setActiveLayout] = useState<'tenant' | 'homeowner' | 'administrator'>('tenant');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   // House detail overlay state shared with chatbot
@@ -512,8 +510,6 @@ export default function LegacyApp() {
     const userRoles = user.roles || [];
     if (userRoles.includes('administrator') || userRoles.includes('admin')) {
       setActiveLayout('administrator');
-    } else if (userRoles.includes('accountant')) {
-      setActiveLayout('accountant');
     } else if (userRoles.includes('homeowner') || userRoles.includes('landlord')) {
       setActiveLayout('homeowner');
     } else {
@@ -1132,21 +1128,6 @@ export default function LegacyApp() {
                 lang={lang}
                 activeLayout={activeLayout}
                 setActiveLayout={setActiveLayout}
-              />
-            )}
-
-            {activeLayout === 'accountant' && (
-              <AccountantDashboard
-                transactions={transactions}
-                applications={applications}
-                houses={houses}
-                totalRevenue={totalRevenue}
-                systemCommission={systemCommission}
-                outstandingPayments={outstandingPayments}
-                activeTenancyRate={activeTenancyRate}
-                onVerifyLedger={handleVerifyLedger}
-                addAuditLog={addAuditLog}
-                lang={lang}
               />
             )}
 

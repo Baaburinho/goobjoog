@@ -61,7 +61,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [staffRole, setStaffRole] = useState<'administrator' | 'accountant'>('accountant');
+  const [staffRole, setStaffRole] = useState<'administrator'>('administrator');
 
   const t = translations[lang] || translations.en;
   const isArabic = lang === 'ar';
@@ -84,7 +84,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     if (foundUser) {
       onLoginSuccess(foundUser);
     } else {
-      alert(`${t.loginFailedMsg}\n\nDemo seeds:\n- tenant / tenant123\n- landlord / landlord123\n- accountant / accountant123\n- admin / admin123`);
+      alert(`${t.loginFailedMsg}\n\nDemo seeds:\n- tenant / tenant123\n- landlord / landlord123\n- admin / admin123`);
     }
   };
 
@@ -181,9 +181,9 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     {lang === 'so' ? 'Guryaha & Kireynta Tooska ah' : lang === 'ar' ? 'البوابة العقارية المباشرة' : 'Direct Property Portals'}
                   </h4>
                   <p className="text-[11px] text-blue-100 leading-relaxed">
-                    {lang === 'so' ? 'Isku xirka kireystayaasha, mulkiilayaasha, xisaabiyeyaasha iyo maamulka Soomaaliya oo dhan.' :
-                     lang === 'ar' ? 'ربط المستأجرين والملّاك والمحاسبين والمدراء بكل سلاسة وأمان عبر الصومال.' :
-                     'Connecting tenants, landlords, accountants & admins seamlessly across Somalia.'}
+                    {lang === 'so' ? 'Isku xirka kireystayaasha, mulkiilayaasha, iyo maamulka Soomaaliya oo dhan.' :
+                     lang === 'ar' ? 'ربط المستأجرين والملّاك وإدارة النظام بكل سلاسة وأمان عبر الصومال.' :
+                     'Connecting tenants, landlords & admins seamlessly across Somalia.'}
                   </p>
                 </div>
               </div>
@@ -415,21 +415,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                       </button>
                     </div>
 
-                    {/* Accountant row */}
-                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
-                        <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs">📊</span>
-                        <span>{t.accountant} (accountant)</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleAutofill('accountant', 'accountant123')}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
-                      >
-                        {t.autofill}
-                      </button>
-                    </div>
-
                     {/* Admin row */}
                     <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
@@ -637,7 +622,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                       onChange={(e) => setStaffRole(e.target.value as any)}
                       className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                     >
-                      <option value="accountant">{t.accountant}</option>
                       <option value="administrator">{t.admin}</option>
                     </select>
                   </div>

@@ -316,7 +316,7 @@ export const translations = {
     noNotificationsYet: "No new notifications at this time.",
     faqTitle: "Frequently Asked Questions",
     aboutGoobJoogTitle: "About GoobJoog Technologies",
-    aboutGoobJoogBody: "GoobJoog is Somalia's leading real estate platform, connecting tenants, landlords, and accountants with secure instant mobile money payments (EVC Plus, Zaad, Sahal).",
+    aboutGoobJoogBody: "GoobJoog is Somalia's leading real estate platform, connecting tenants and landlords with secure instant mobile money payments (EVC Plus, Zaad, Sahal).",
     termsTitle: "Terms of Service",
     privacyTitle: "Privacy & Data Protection Policy",
     iosGuideTitle: "iPhone / iPad Installation Guide (iOS App)",
