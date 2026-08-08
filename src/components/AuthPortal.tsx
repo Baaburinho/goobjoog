@@ -355,31 +355,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   {t.login}
                 </button>
 
-                {/* Divider */}
-                <div className="flex items-center gap-2 py-1">
-                  <div className="h-px bg-slate-300 dark:bg-slate-800 flex-1"></div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    {lang === 'ar' ? 'أو' : lang === 'so' ? 'ama' : 'or'}
-                  </span>
-                  <div className="h-px bg-slate-300 dark:bg-slate-800 flex-1"></div>
-                </div>
-
-                {/* Biometric Bar */}
-                <button
-                  type="button"
-                  onClick={handleFingerprintAuth}
-                  disabled={biometricLoading}
-                  className="w-full py-3 px-4 rounded-2xl bg-[#f4f7fb] dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-[5px_5px_10px_#c5d0e0,-5px_-5px_10px_#ffffff] dark:shadow-none hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-between transition active:scale-98"
-                >
-                  <Fingerprint size={20} className="text-[#4873b8] dark:text-indigo-400" />
-                  <span className="tracking-wide font-extrabold text-xs">
-                    {biometricLoading ? t.scanning : t.biometricScan}
-                  </span>
-                  <ScanFace size={20} className="text-[#4873b8] dark:text-indigo-400" />
-                </button>
-
                 {/* DEMO ACCOUNTS CARD */}
-                <div className="bg-[#f4f7fb] dark:bg-slate-800/80 rounded-2xl p-3 border border-slate-200/60 dark:border-slate-700 shadow-[inset_2px_2px_5px_#c8d3e6,inset_-2px_-2px_5px_#ffffff] dark:shadow-none space-y-2">
+                <div className="bg-[#f4f7fb] dark:bg-slate-800/80 rounded-2xl p-3 border border-slate-200/60 dark:border-slate-700 shadow-[inset_2px_2px_5px_#c8d3e6,inset_-2px_-2px_5px_#ffffff] dark:shadow-none space-y-2 mt-4">
                   <span className="font-extrabold text-slate-700 dark:text-slate-300 text-[11px] block text-center uppercase tracking-wider">
                     {t.demoAccounts}
                   </span>
