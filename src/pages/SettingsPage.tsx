@@ -98,6 +98,22 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   // Security Toggles
   const [hasBiometricHardware, setHasBiometricHardware] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+  const [biometricLockEnabled, setBiometricLockEnabled] = useState(() => {
+    return localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
+  });
+
+  const handleBiometricToggle = (enabled: boolean) => {
+    setBiometricLockEnabled(enabled);
+    localStorage.setItem('goobjoog_biometric_lock_enabled', enabled ? 'true' : 'false');
+    if (addAuditLog) {
+      addAuditLog('BIOMETRIC_LOCK_TOGGLE', `User set biometric lock to ${enabled ? 'ENABLED' : 'DISABLED'}`);
+    }
+    showToast(
+      enabled
+        ? (lang === 'so' ? 'Qufida farta (Biometric) waa la daaray!' : lang === 'ar' ? 'تم تفعيل قفل التطبيق بالبصمة!' : 'Biometric App Lock enabled!')
+        : (lang === 'so' ? 'Qufida farta waa la demiyay' : lang === 'ar' ? 'تم إيقاف قفل التطبيق بالبصمة' : 'Biometric App Lock disabled')
+    );
+  };
 
   useEffect(() => {
     checkBiometricHardwareSupport().then(supported => {
@@ -557,16 +573,37 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 </button>
               </form>
 
-              {/* Biometrics and 2FA Toggles */}
+              {/* App lock / Unlock with biometric matching WhatsApp style screenshot */}
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
-                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{t.biometricSettingsTitle}</span>
-                    <p className="text-[11px] text-slate-400">{t.biometricDesc}</p>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Fingerprint size={18} className="text-blue-600 dark:text-blue-400" />
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                          {lang === 'so' ? 'Ku fur farta (Unlock with biometric)' : lang === 'ar' ? 'إلغاء القفل بالبصمة (Unlock with biometric)' : 'Unlock with biometric'}
+                        </h4>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm">
+                        {lang === 'so'
+                          ? 'Marka la daaro, waxaad u baahan doontaa inaad isticmaasho farahaaga, wejigaaga ama calaamad kale oo gaar ah si aad u furto GoobJoog. Waxaad weli ka jawaabi kartaa ogeysiisyada marka GoobJoog la qufo.'
+                          : lang === 'ar'
+                          ? 'عند التفعيل، ستحتاج إلى استخدام بصمة الإصبع أو الوجه أو المعرفات الحيوية لفتح GoobJoog. ستتمكن من الرد على الإشعارات والمكالمات حتى لو كان GoobJoog مقفلاً.'
+                          : "When enabled, you'll need to use fingerprint, face or other unique identifiers to open GoobJoog. You can still answer calls / notifications if GoobJoog is locked."}
+                      </p>
+                    </div>
+
+                    {/* WhatsApp / iOS Style Toggle Switch */}
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+                      <input
+                        type="checkbox"
+                        checked={biometricLockEnabled}
+                        onChange={(e) => handleBiometricToggle(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                    </label>
                   </div>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-2 py-1 rounded-lg">
-                    ✓ {t.available}
-                  </span>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">

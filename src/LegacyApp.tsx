@@ -10,6 +10,7 @@ import { LandlordDashboard } from './pages/LandlordDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { SettingsPage } from './pages/SettingsPage';
 import { GoobJoogAI } from './components/GoobJoogAI';
+import { AppLockScreen } from './components/AppLockScreen';
 
 // ==========================================
 // SEED USERS & SYSTEM STATE DATA
@@ -233,8 +234,36 @@ const INITIAL_AUDITS: AuditLog[] = [
 ];
 
 export default function LegacyApp() {
+  // Saved profile and biometric lock state
+  const [savedUser, setSavedUser] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('goobjoog_active_user');
+      return saved ? JSON.parse(saved) : INITIAL_USERS[1];
+    } catch (e) {
+      return INITIAL_USERS[1];
+    }
+  });
+
+  const [isLocked, setIsLocked] = useState<boolean>(() => {
+    const lockEnabled = localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
+    const saved = localStorage.getItem('goobjoog_active_user');
+    return lockEnabled && !!(saved || INITIAL_USERS[1]);
+  });
+
   // Authentication & Session State
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const lockEnabled = localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
+      const saved = localStorage.getItem('goobjoog_active_user');
+      if (saved && !lockEnabled) {
+        return JSON.parse(saved);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [lang, setLangState] = useState<'en' | 'so' | 'ar'>(() => {
     const saved = localStorage.getItem('goobjoog_lang');
     if (saved === 'ar' || saved === 'so' || saved === 'en') {
@@ -505,8 +534,30 @@ export default function LegacyApp() {
   // ==========================================
   
   // Auth Success Handlers
+  const handleUnlockSuccess = (user: UserProfile) => {
+    setCurrentUser(user);
+    setSavedUser(user);
+    setIsLocked(false);
+    localStorage.setItem('goobjoog_active_user', JSON.stringify(user));
+    const userRoles = user.roles || [];
+    if (userRoles.includes('administrator') || userRoles.includes('admin')) {
+      setActiveLayout('administrator');
+    } else if (userRoles.includes('homeowner') || userRoles.includes('landlord')) {
+      setActiveLayout('homeowner');
+    } else {
+      setActiveLayout('tenant');
+    }
+    addAuditLog('BIOMETRIC_UNLOCK', `User ${user.fullName} unlocked GoobJoog dashboard with biometrics.`);
+  };
+
   const handleLoginSuccess = (user: UserProfile) => {
     setCurrentUser(user);
+    setSavedUser(user);
+    setIsLocked(false);
+    localStorage.setItem('goobjoog_active_user', JSON.stringify(user));
+    if (localStorage.getItem('goobjoog_biometric_lock_enabled') === null) {
+      localStorage.setItem('goobjoog_biometric_lock_enabled', 'true');
+    }
     const userRoles = user.roles || [];
     if (userRoles.includes('administrator') || userRoles.includes('admin')) {
       setActiveLayout('administrator');
@@ -516,6 +567,14 @@ export default function LegacyApp() {
       setActiveLayout('tenant');
     }
     addAuditLog('USER_LOGIN', `User ${user.fullName} authenticated workspace.`);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setSavedUser(null);
+    setIsLocked(false);
+    localStorage.removeItem('goobjoog_active_user');
+    addAuditLog('USER_LOGOUT', 'User logged out of session.');
   };
 
   const handleRegisterUser = async (newUser: UserProfile) => {
@@ -568,13 +627,6 @@ export default function LegacyApp() {
         console.error("Supabase credentials update failed:", err);
       }
     }
-  };
-
-  const handleLogout = () => {
-    if (currentUser) {
-      addAuditLog('USER_LOGOUT', `User ${currentUser.fullName} logged out.`);
-    }
-    setCurrentUser(null);
   };
 
   // Tenant Actions
@@ -1043,6 +1095,21 @@ export default function LegacyApp() {
   // ==========================================
   // VIEW ROUTING ENFORCEMENT
   // ==========================================
+  if (isLocked && savedUser) {
+    return (
+      <AppLockScreen
+        savedUser={savedUser}
+        onUnlockSuccess={handleUnlockSuccess}
+        onUsePassword={() => {
+          setIsLocked(false);
+          setCurrentUser(null);
+        }}
+        onLogout={handleLogout}
+        lang={lang}
+      />
+    );
+  }
+
   if (!currentUser) {
     return (
       <AuthPortal
