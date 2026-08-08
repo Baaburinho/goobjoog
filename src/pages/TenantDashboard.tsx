@@ -823,18 +823,6 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
               </form>
             </div>
 
-            {/* Bottom Close / Return Button */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedHouse(null)}
-                className="w-full py-3 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 font-bold text-xs rounded-2xl transition flex items-center justify-center gap-2 border border-rose-200 dark:border-rose-800 shadow-sm"
-              >
-                <X size={18} />
-                <span>{lang === 'so' ? 'Xir Daaqadda (Ka laabto)' : lang === 'ar' ? 'إغلاق النافذة (العودة)' : 'Close Window (Go Back)'}</span>
-              </button>
-            </div>
-
           </div>
         </div>
       )}
