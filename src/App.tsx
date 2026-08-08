@@ -30,7 +30,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   handleReset = () => {
-    localStorage.removeItem('goobjoog_users');
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.error(e);
+    }
     this.setState({ hasError: false, error: null });
     window.location.reload();
   };
