@@ -708,15 +708,6 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
 
             {/* Photo & Title Header */}
             <div className="relative h-64 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800">
-              <button
-                type="button"
-                onClick={() => setSelectedHouse(null)}
-                className={`absolute top-3 ${isArabic ? 'left-3' : 'right-3'} z-10 p-2 bg-slate-900/80 hover:bg-slate-950 text-white rounded-full transition shadow-lg flex items-center gap-1 px-3`}
-                title={lang === 'so' ? 'Xir daaqadda' : lang === 'ar' ? 'إغلاق' : 'Close'}
-              >
-                <X size={18} />
-                <span className="text-xs font-bold">{lang === 'so' ? 'Ka laabto' : lang === 'ar' ? 'إغلاق' : 'Close'}</span>
-              </button>
               <img
                 src={selectedHouse.imageUrl}
                 alt={selectedHouse.title}

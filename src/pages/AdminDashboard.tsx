@@ -133,10 +133,56 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
     u.phone.includes(userSearch)
   );
+  const pendingUpgrades = users.filter(u => u.upgradeStatus === 'pending');
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in" dir={isArabic ? 'rtl' : 'ltr'}>
       
+      {/* PENDING LANDLORD UPGRADES ALERT BANNER FOR ADMIN */}
+      {pendingUpgrades.length > 0 && (
+        <div className="p-5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-2xl shadow-lg space-y-3">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-black uppercase tracking-wider flex items-center gap-2">
+              <span>🌟</span>
+              <span>
+                {lang === 'so' ? `Codsiyo Dalacsiin Mulkiile ah ayaa jira (${pendingUpgrades.length})` :
+                 lang === 'ar' ? `طلبات ترقية إلى مالك عقار معلقة (${pendingUpgrades.length})` :
+                 `Pending Landlord Upgrade Applications (${pendingUpgrades.length})`}
+              </span>
+            </h3>
+            <span className="px-2.5 py-0.5 bg-white/20 text-white rounded-full text-[10px] font-bold">
+              {lang === 'so' ? 'U baahan Aqbalaad' : lang === 'ar' ? 'يتطلب موافقة' : 'Action Required'}
+            </span>
+          </div>
+          <p className="text-xs text-amber-100 leading-relaxed">
+            {lang === 'so' ? 'Kireystayaasha hoos ku qoran waxay soo gudbiyeen xogtooda guryaha si ay Mulkiilayaal u noqdaan. Guji "Aqbal Mulkiilenimada" si aad ugu oggolaato kireynta guryaha.' :
+             lang === 'ar' ? 'قام المستأجرون المذكورون أدناه بتقديم بيانات عقاراتهم للتحول إلى مالكي عقارات. اضغط على "قبول الترقية" للموافقة.' :
+             'The tenants listed below submitted property proof to list their houses. Click "Approve Landlord Upgrade" to grant homeowner dashboard access.'}
+          </p>
+          <div className="space-y-2 pt-1">
+            {pendingUpgrades.map(u => (
+              <div key={u.id} className="p-3 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-between gap-3">
+                <div>
+                  <span className="font-bold text-xs block">{u.fullName}</span>
+                  <span className="text-[10px] text-amber-100 font-mono">@{u.username} • {u.phone}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onApproveUpgrade(u.id);
+                    alert(lang === 'so' ? 'Dalacsiinta mulkiilaha waa la oggolaaday!' : lang === 'ar' ? 'تمت الموافقة على ترقية الحساب إلى مالك عقار بنجاح!' : 'Landlord upgrade approved successfully!');
+                  }}
+                  className="px-3 py-1.5 bg-white text-orange-700 hover:bg-amber-50 font-bold text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1"
+                >
+                  <Check size={14} />
+                  <span>{t.approveLandlordUpgradeBtn || 'Aqbal Mulkiilenimada'}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* SYSTEM STATS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
