@@ -63,7 +63,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   const [password, setPassword] = useState('');
   const [staffRole, setStaffRole] = useState<'administrator' | 'accountant'>('accountant');
 
-  const t = translations[lang];
+  const t = translations[lang] || translations.en;
   const isArabic = lang === 'ar';
 
   const handleLangChange = (targetLang: 'en' | 'so' | 'ar') => {
@@ -73,7 +73,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginUsername || !loginPassword) {
-      alert(lang === 'so' ? "Fadlan buuxi dhammaan meelaha banaan." : lang === 'ar' ? "يرجى ملء جميع الحقول." : "Please fill in both fields.");
+      alert(t.fillRequiredMsg);
       return;
     }
     
@@ -84,10 +84,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     if (foundUser) {
       onLoginSuccess(foundUser);
     } else {
-      const errMessage = lang === 'so' ? "Giriita wuu guuldareystay! Magaca ama furaha sirta ah ayaa khaldan." :
-                         lang === 'ar' ? "فشل تسجيل الدخول! اسم المستخدم أو كلمة المرور غير صحيحة." :
-                         "Authentication failed! Invalid username or password.";
-      alert(`${errMessage}\n\nDemo seeds:\n- tenant / tenant123\n- landlord / landlord123\n- accountant / accountant123\n- admin / admin123`);
+      alert(`${t.loginFailedMsg}\n\nDemo seeds:\n- tenant / tenant123\n- landlord / landlord123\n- accountant / accountant123\n- admin / admin123`);
     }
   };
 
@@ -99,7 +96,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   const handleRegister = (e: React.FormEvent, isStaff: boolean) => {
     e.preventDefault();
     if (!fullName || !phone || !username || !password) {
-      alert(lang === 'so' ? "Fadlan buuxi dhammaan meelaha rasmiga ah." : lang === 'ar' ? "يرجى ملء جميع الحقول المطلوبة." : "Please fill in all required fields.");
+      alert(t.fillRequiredMsg);
       return;
     }
 
@@ -119,13 +116,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     };
 
     onRegisterUser(newUser);
-    alert(
-      lang === 'so'
-        ? `Waad ku guuleysatay diiwaangelinta! Ku soo dhowaw GoobJoog.`
-        : lang === 'ar'
-        ? `تم التسجيل بنجاح! مرحباً بك في GoobJoog.`
-        : `Registration successful! Welcome to GoobJoog.`
-    );
+    alert(t.regSuccessMsg);
     
     setFullName('');
     setEmail('');
@@ -144,16 +135,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         <div className="max-w-md md:max-w-4xl w-full mb-3 bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs px-4 py-2 rounded-2xl shadow-sm flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 font-medium">
             <span>⚠️</span>
-            <span>
-              {lang === 'so' 
-                ? 'Sandbox Database Active (Local Storage)' 
-                : lang === 'ar' 
-                ? 'وضع قاعدة البيانات المحلية مفعل' 
-                : 'Local Database Sandbox Active'}
-            </span>
+            <span>{t.sandboxWarning}</span>
           </div>
           <span className="text-[10px] opacity-75 hidden sm:inline">
-            {lang === 'so' ? 'Supabase laguma habeyn .env' : 'Supabase parameters unconfigured'}
+            {t.sandboxAlert}
           </span>
         </div>
       )}
@@ -174,7 +159,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
             <source src="/login-bg.mp4" type="video/mp4" />
           </video>
 
-          {/* Glassmorphic Gradient Overlay for Crisp Readability */}
+          {/* Gradient Overlay for Crisp Readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-indigo-950/75 to-indigo-900/60 backdrop-blur-[2px] z-0"></div>
           
           <div className="relative z-10 space-y-6">
@@ -183,8 +168,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 <span className="text-3xl">🏠</span>
               </div>
               <div>
-                <h1 className="text-3xl font-black tracking-wide text-white">GoobJoog</h1>
-                <p className="text-xs text-blue-100 font-medium">House Renting System in Somalia</p>
+                <h1 className="text-3xl font-black tracking-wide text-white">{t.appName}</h1>
+                <p className="text-xs text-blue-100 font-medium">{t.subtitle}</p>
               </div>
             </div>
 
@@ -192,9 +177,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm p-3.5 rounded-2xl border border-white/20">
                 <CheckCircle2 className="text-emerald-300 shrink-0 mt-0.5" size={18} />
                 <div>
-                  <h4 className="text-xs font-bold text-white">Direct Property Portals</h4>
+                  <h4 className="text-xs font-bold text-white">
+                    {lang === 'so' ? 'Guryaha & Kireynta Tooska ah' : lang === 'ar' ? 'البوابة العقارية المباشرة' : 'Direct Property Portals'}
+                  </h4>
                   <p className="text-[11px] text-blue-100 leading-relaxed">
-                    Connecting tenants, landlords, accountants & admins seamlessly across Somalia.
+                    {lang === 'so' ? 'Isku xirka kireystayaasha, mulkiilayaasha, xisaabiyeyaasha iyo maamulka Soomaaliya oo dhan.' :
+                     lang === 'ar' ? 'ربط المستأجرين والملّاك والمحاسبين والمدراء بكل سلاسة وأمان عبر الصومال.' :
+                     'Connecting tenants, landlords, accountants & admins seamlessly across Somalia.'}
                   </p>
                 </div>
               </div>
@@ -202,9 +191,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm p-3.5 rounded-2xl border border-white/20">
                 <CheckCircle2 className="text-emerald-300 shrink-0 mt-0.5" size={18} />
                 <div>
-                  <h4 className="text-xs font-bold text-white">Somali Mobile Money Integration</h4>
+                  <h4 className="text-xs font-bold text-white">
+                    {lang === 'so' ? 'Lacag Bixinta Mobile Money ee Soomaaliya' : lang === 'ar' ? 'التكامل مع محافظ الهاتف المحمول' : 'Somali Mobile Money Integration'}
+                  </h4>
                   <p className="text-[11px] text-blue-100 leading-relaxed">
-                    Instant automated payments via Waafi, EVC Plus, Zaad, and Sahal.
+                    {lang === 'so' ? 'Lacag bixin degdeg ah oo toos ah oo maraysa EVC Plus, Sahal, Zaad, iyo Waafi.' :
+                     lang === 'ar' ? 'سداد فوري وتلقائي للإيجار عبر EVC Plus و Zaad و Sahal و Waafi.' :
+                     'Instant automated payments via Waafi, EVC Plus, Zaad, and Sahal.'}
                   </p>
                 </div>
               </div>
@@ -212,9 +205,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm p-3.5 rounded-2xl border border-white/20">
                 <CheckCircle2 className="text-emerald-300 shrink-0 mt-0.5" size={18} />
                 <div>
-                  <h4 className="text-xs font-bold text-white">Biometric & WebAuthn Ready</h4>
+                  <h4 className="text-xs font-bold text-white">
+                    {lang === 'so' ? 'Amniga Biometric-ga & Farta' : lang === 'ar' ? 'الأمان البيومتري المتقدم' : 'Biometric & WebAuthn Ready'}
+                  </h4>
                   <p className="text-[11px] text-blue-100 leading-relaxed">
-                    Fast passwordless fingerprint and face identification for ultimate security.
+                    {lang === 'so' ? 'Gal adigoo isticmaalaya fartaada ama wajigaaga si degdeg ah oo ammaan ah.' :
+                     lang === 'ar' ? 'تسجيل دخول سريع وآمن ببصمة الإصبع أو التعرف على الوجه دون كلمات مرور.' :
+                     'Fast passwordless fingerprint and face identification for ultimate security.'}
                   </p>
                 </div>
               </div>
@@ -222,7 +219,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           </div>
 
           <div className="relative z-10 pt-6 border-t border-white/20 flex items-center justify-between text-[11px] text-blue-100">
-            <span>© {new Date().getFullYear()} GoobJoog Platform</span>
+            <span>© {new Date().getFullYear()} {t.appName} Platform</span>
             <span className="font-semibold text-emerald-300">Somalia 🇸🇴</span>
           </div>
         </div>
@@ -238,7 +235,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 <div className="w-10 h-10 rounded-2xl bg-[#f4f7fb] dark:bg-slate-800 flex items-center justify-center shadow-[4px_4px_8px_#d1d9e6,-4px_-4px_8px_#ffffff] dark:shadow-none border border-white/95 dark:border-slate-700">
                   <span className="text-xl">🏠</span>
                 </div>
-                <span className="font-black text-slate-800 dark:text-slate-100 tracking-wide text-xl">GoobJoog</span>
+                <span className="font-black text-slate-800 dark:text-slate-100 tracking-wide text-xl">{t.appName}</span>
               </div>
 
               {/* Language Pills */}
@@ -254,21 +251,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleLangChange('en')}
-                  className={`px-2 py-1 text-[10px] font-bold rounded-xl transition ${
-                    lang === 'en' ? 'bg-[#4873b8] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                  }`}
-                >
-                  🇬🇧 EN
-                </button>
-                <button
-                  type="button"
                   onClick={() => handleLangChange('ar')}
                   className={`px-2 py-1 text-[10px] font-bold rounded-xl transition ${
                     lang === 'ar' ? 'bg-[#4873b8] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
                   🇸🇦 AR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleLangChange('en')}
+                  className={`px-2 py-1 text-[10px] font-bold rounded-xl transition ${
+                    lang === 'en' ? 'bg-[#4873b8] text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  🇬🇧 EN
                 </button>
               </div>
             </div>
@@ -285,7 +282,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition ${
                     activeMode === 'login' 
                       ? 'bg-[#4873b8] text-white shadow-md' 
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
                   }`}
                 >
                   {t.login}
@@ -299,7 +296,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition ${
                     activeMode === 'register_public' 
                       ? 'bg-[#4873b8] text-white shadow-md' 
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
                   }`}
                 >
                   {t.registerCustomer}
@@ -315,13 +312,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     {t.username}
                   </label>
                   <div className="relative flex items-center">
-                    <User className="absolute left-3.5 text-slate-400" size={16} />
+                    <User className={`absolute ${isArabic ? 'right-3.5' : 'left-3.5'} text-slate-400`} size={16} />
                     <input
                       type="text"
-                      placeholder={lang === 'so' ? 'e.g. tenant, admin' : 'e.g. tenant, admin'}
+                      placeholder={lang === 'so' ? 'tusaale: tenant, landlord, admin' : lang === 'ar' ? 'مثال: tenant, landlord, admin' : 'e.g. tenant, landlord, admin'}
                       value={loginUsername}
                       onChange={(e) => setLoginUsername(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 text-xs border border-slate-200/50 dark:border-slate-700 rounded-2xl bg-[#f4f7fb] dark:bg-slate-950 shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none focus:outline-none text-slate-800 dark:text-slate-100 font-medium"
+                      className={`w-full ${isArabic ? 'pr-10 pl-4 text-right' : 'pl-10 pr-4 text-left'} py-3 text-xs border border-slate-200/50 dark:border-slate-700 rounded-2xl bg-[#f4f7fb] dark:bg-slate-950 shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none focus:outline-none text-slate-800 dark:text-slate-100 font-medium`}
                     />
                   </div>
                 </div>
@@ -331,18 +328,18 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     {t.password}
                   </label>
                   <div className="relative flex items-center">
-                    <Lock className="absolute left-3.5 text-slate-400" size={16} />
+                    <Lock className={`absolute ${isArabic ? 'right-3.5' : 'left-3.5'} text-slate-400`} size={16} />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 py-3 text-xs border border-slate-200/50 dark:border-slate-700 rounded-2xl bg-[#f4f7fb] dark:bg-slate-950 shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none focus:outline-none text-slate-800 dark:text-slate-100 font-medium"
+                      className={`w-full ${isArabic ? 'pr-10 pl-10 text-right' : 'pl-10 pr-10 text-left'} py-3 text-xs border border-slate-200/50 dark:border-slate-700 rounded-2xl bg-[#f4f7fb] dark:bg-slate-950 shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none focus:outline-none text-slate-800 dark:text-slate-100 font-medium`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 text-slate-400 hover:text-slate-700 dark:text-slate-300 transition"
+                      className={`absolute ${isArabic ? 'left-3.5' : 'right-3.5'} text-slate-400 hover:text-slate-700 dark:text-slate-300 transition`}
                       aria-label="Toggle Password Visibility"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -358,35 +355,33 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   {t.login}
                 </button>
 
-                {/* OR Divider */}
+                {/* Divider */}
                 <div className="flex items-center gap-2 py-1">
                   <div className="h-px bg-slate-300 dark:bg-slate-800 flex-1"></div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    or
+                    {lang === 'ar' ? 'أو' : lang === 'so' ? 'ama' : 'or'}
                   </span>
                   <div className="h-px bg-slate-300 dark:bg-slate-800 flex-1"></div>
                 </div>
 
-                {/* Raised Neumorphic Biometric Bar */}
+                {/* Biometric Bar */}
                 <button
                   type="button"
                   onClick={handleFingerprintAuth}
                   disabled={biometricLoading}
-                  className="w-full py-3 px-4 rounded-2xl bg-[#f4f7fb] dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-[5px_5px_10px_#c5d0e0,-5px_-5px_10px_#ffffff] dark:shadow-none hover:bg-slate-100 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-between transition active:scale-98"
+                  className="w-full py-3 px-4 rounded-2xl bg-[#f4f7fb] dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 shadow-[5px_5px_10px_#c5d0e0,-5px_-5px_10px_#ffffff] dark:shadow-none hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold text-xs flex items-center justify-between transition active:scale-98"
                 >
                   <Fingerprint size={20} className="text-[#4873b8] dark:text-indigo-400" />
                   <span className="tracking-wide font-extrabold text-xs">
-                    {biometricLoading
-                      ? (lang === 'so' ? 'Hubinayaa...' : 'Scanning...')
-                      : (lang === 'so' ? 'Biometric Options (Farta/Wajiga)' : 'Biometric Options')}
+                    {biometricLoading ? t.scanning : t.biometricScan}
                   </span>
                   <ScanFace size={20} className="text-[#4873b8] dark:text-indigo-400" />
                 </button>
 
-                {/* DEMO ACCOUNTS CARD WITH AUTOFILL BUTTONS */}
+                {/* DEMO ACCOUNTS CARD */}
                 <div className="bg-[#f4f7fb] dark:bg-slate-800/80 rounded-2xl p-3 border border-slate-200/60 dark:border-slate-700 shadow-[inset_2px_2px_5px_#c8d3e6,inset_-2px_-2px_5px_#ffffff] dark:shadow-none space-y-2">
                   <span className="font-extrabold text-slate-700 dark:text-slate-300 text-[11px] block text-center uppercase tracking-wider">
-                    Demo Accounts
+                    {t.demoAccounts}
                   </span>
 
                   <div className="space-y-2">
@@ -394,14 +389,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
                         <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xs">👤</span>
-                        <span>Tenant</span>
+                        <span>{t.tenant} (tenant)</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleAutofill('tenant', 'tenant123')}
                         className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
                       >
-                        Autofill
+                        {t.autofill}
                       </button>
                     </div>
 
@@ -409,14 +404,29 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
                         <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs">🏡</span>
-                        <span>Landlord</span>
+                        <span>{t.landlord} (landlord)</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleAutofill('landlord', 'landlord123')}
                         className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
                       >
-                        Autofill
+                        {t.autofill}
+                      </button>
+                    </div>
+
+                    {/* Accountant row */}
+                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+                        <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs">📊</span>
+                        <span>{t.accountant} (accountant)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAutofill('accountant', 'accountant123')}
+                        className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
+                      >
+                        {t.autofill}
                       </button>
                     </div>
 
@@ -424,14 +434,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
                         <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">🛡️</span>
-                        <span>Admin</span>
+                        <span>{t.admin} (admin)</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleAutofill('admin', 'admin123')}
                         className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
                       >
-                        Autofill
+                        {t.autofill}
                       </button>
                     </div>
                   </div>
@@ -446,7 +456,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 {signupStep === 'intent' && (
                   <div className="space-y-3">
                     <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
-                      {lang === 'so' ? 'Maxay tahay ujeeddadaadu?' : 'What is your primary goal?'}
+                      {t.intentQuestion}
                     </h3>
 
                     <div className="space-y-2.5">
@@ -461,10 +471,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                         <span className="text-2xl">🏠</span>
                         <div>
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#4873b8] block">
-                            {lang === 'so' ? 'Waxaan leeyahay guri' : 'I own a property'}
+                            {t.intentOwnerTitle}
                           </span>
                           <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                            {lang === 'so' ? 'Waxaan rabaa inaan kiraysi geliyo.' : 'List it for rent and collect payments.'}
+                            {t.intentOwnerSub}
                           </span>
                         </div>
                       </button>
@@ -480,10 +490,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                         <span className="text-2xl">🔍</span>
                         <div>
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-[#4873b8] block">
-                            {lang === 'so' ? 'Waxaan raadinayaa guri' : 'I am looking for a home'}
+                            {t.intentTenantTitle}
                           </span>
                           <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                            {lang === 'so' ? 'Waxaan rabaa inaan kiraysto.' : 'Discover houses and pay rent online.'}
+                            {t.intentTenantSub}
                           </span>
                         </div>
                       </button>
@@ -495,14 +505,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   <form onSubmit={(e) => handleRegister(e, false)} className="space-y-2.5">
                     <div className="flex justify-between items-center pb-1 border-b border-slate-200 dark:border-slate-800">
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                        {lang === 'so' ? 'Diiwaangelinta Xogtaada' : 'Personal Information'}
+                        {t.personalInfo}
                       </span>
                       <button
                         type="button"
                         onClick={() => setSignupStep('intent')}
                         className="text-[10px] text-[#4873b8] hover:underline font-bold"
                       >
-                        {lang === 'so' ? 'Dib u Laabo' : 'Go Back'}
+                        {t.back}
                       </button>
                     </div>
 
@@ -510,10 +520,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                       <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.fullName} *</label>
                       <input
                         type="text"
-                        placeholder="Abdi Omar"
+                        placeholder="Abdi Omar Ali"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                        className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                         required
                       />
                     </div>
@@ -526,17 +536,17 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                           placeholder="name@example.so"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                         />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.phone} *</label>
                         <input
                           type="text"
-                          placeholder="25261XXXXXXX"
+                          placeholder="+25261XXXXXXX"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                           required
                         />
                       </div>
@@ -550,7 +560,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                           placeholder="abdi"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                           required
                         />
                       </div>
@@ -561,7 +571,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                           placeholder="••••••••"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                          className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                           required
                         />
                       </div>
@@ -572,7 +582,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                       className="w-full bg-[#4873b8] hover:bg-[#3b63a0] text-white font-bold py-2.5 rounded-xl shadow transition mt-2 text-xs flex items-center justify-center gap-1.5"
                     >
                       <span>{t.signup}</span>
-                      <ArrowRight size={14} />
+                      <ArrowRight size={14} className={isArabic ? 'rotate-180' : ''} />
                     </button>
                   </form>
                 )}
@@ -592,7 +602,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     onClick={() => setActiveMode('login')}
                     className="text-[10px] text-slate-500 hover:underline font-bold"
                   >
-                    {lang === 'so' ? 'Dib u laabo' : 'Back'}
+                    {t.back}
                   </button>
                 </div>
 
@@ -600,10 +610,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.fullName} *</label>
                   <input
                     type="text"
-                    placeholder="Eng. Huda"
+                    placeholder="Eng. Huda Duale"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                     required
                   />
                 </div>
@@ -613,10 +623,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.phone} *</label>
                     <input
                       type="text"
-                      placeholder="25261XXXXXXX"
+                      placeholder="+25261XXXXXXX"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                       required
                     />
                   </div>
@@ -625,7 +635,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     <select
                       value={staffRole}
                       onChange={(e) => setStaffRole(e.target.value as any)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                     >
                       <option value="accountant">{t.accountant}</option>
                       <option value="administrator">{t.admin}</option>
@@ -641,7 +651,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                       placeholder="huda_admin"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                       required
                     />
                   </div>
@@ -652,7 +662,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
                       required
                     />
                   </div>
@@ -663,7 +673,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl shadow transition mt-2 text-xs flex items-center justify-center gap-1.5"
                 >
                   <Key size={14} />
-                  {lang === 'so' ? 'Diiwaangeli Hawl-wadeenka' : 'Register Staff Member'}
+                  <span>{t.registerStaff}</span>
                 </button>
               </form>
             )}
@@ -680,7 +690,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 }}
                 className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-[#4873b8] transition font-bold underline"
               >
-                🔒 {lang === 'so' ? 'Administrative Staff Portal' : 'Administrative Staff Portal'}
+                🔒 {t.staffPortal}
               </button>
             ) : (
               <button
@@ -690,7 +700,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 }}
                 className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-[#4873b8] transition font-bold underline"
               >
-                👤 {lang === 'so' ? 'Ku laabo Diiwaanka Macmiilka' : 'Return to Customer Sign In'}
+                👤 {t.returnToCustomer}
               </button>
             )}
           </div>

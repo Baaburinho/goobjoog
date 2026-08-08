@@ -237,7 +237,24 @@ const INITIAL_AUDITS: AuditLog[] = [
 export default function LegacyApp() {
   // Authentication & Session State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [lang, setLang] = useState<'en' | 'so' | 'ar'>('en');
+  const [lang, setLangState] = useState<'en' | 'so' | 'ar'>(() => {
+    const saved = localStorage.getItem('goobjoog_lang');
+    if (saved === 'ar' || saved === 'so' || saved === 'en') {
+      return saved as 'en' | 'so' | 'ar';
+    }
+    return 'so';
+  });
+
+  const setLang = (newLang: 'en' | 'so' | 'ar') => {
+    setLangState(newLang);
+    localStorage.setItem('goobjoog_lang', newLang);
+  };
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, [lang]);
+
   const [activeLayout, setActiveLayout] = useState<'tenant' | 'homeowner' | 'accountant' | 'administrator'>('tenant');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   

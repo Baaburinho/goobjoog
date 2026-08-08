@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { UserProfile } from '../domain/entities';
 import { checkBiometricHardwareSupport } from '../shared/utils/biometrics';
+import { translations } from '../lib/translations';
 
 interface SettingsPageProps {
   currentUser: UserProfile;
@@ -28,6 +29,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   onUpdateUser,
   addAuditLog
 }) => {
+  const t = translations[lang] || translations.en;
+  const isArabic = lang === 'ar';
+
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security' | 'notifications' | 'system' | 'support'>('profile');
   const [message, setMessage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -39,19 +43,28 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
   // File & Camera Avatar Upload Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const showToast = (msg: string, isError = false) => {
+    if (isError) {
+      setErrorMsg(msg);
+      setTimeout(() => setErrorMsg(null), 3000);
+    } else {
+      setMessage(msg);
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
 
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      showToast(lang === 'so' ? 'Fadlan dooro sawir (JPEG/PNG)' : 'Please select an image file', true);
+      showToast(lang === 'so' ? 'Fadlan dooro sawir (JPEG/PNG)' : lang === 'ar' ? 'يرجى اختيار ملف صورة صالح (JPEG/PNG)' : 'Please select an image file', true);
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      showToast(lang === 'so' ? 'Sawirku waa inuu ka yaryahay 5MB' : 'Image size must be less than 5MB', true);
+      showToast(lang === 'so' ? 'Sawirku waa inuu ka yaryahay 5MB' : lang === 'ar' ? 'حجم الصورة يجب ألا يتجاوز ٥ ميجابايت' : 'Image size must be less than 5MB', true);
       return;
     }
 
@@ -63,7 +76,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         if (addAuditLog) {
           addAuditLog('AVATAR_UPDATE', `User updated profile picture`);
         }
-        showToast(lang === 'so' ? 'Sawirka profile-kaaga waa la cusbooneysiiyay!' : 'Profile picture updated successfully!');
+        showToast(lang === 'so' ? 'Sawirka profile-kaaga waa la cusbooneysiiyay!' : lang === 'ar' ? 'تم تحديث الصورة الشخصية بنجاح!' : 'Profile picture updated successfully!');
       }
     };
     reader.readAsDataURL(file);
@@ -73,7 +86,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleRemoveAvatar = () => {
     if (onUpdateUser) {
       onUpdateUser({ avatarUrl: '' });
-      showToast(lang === 'so' ? 'Sawirka profile-ka waa la tirtiray' : 'Profile picture removed');
+      showToast(lang === 'so' ? 'Sawirka profile-ka waa la tirtiray' : lang === 'ar' ? 'تمت إزالة الصورة الشخصية' : 'Profile picture removed');
     }
   };
 
@@ -83,10 +96,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Security Toggles
-
   const [hasBiometricHardware, setHasBiometricHardware] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
-  const [rememberDevice, setRememberDevice] = useState(true);
 
   useEffect(() => {
     checkBiometricHardwareSupport().then(supported => {
@@ -98,895 +109,559 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   const [rentReminders, setRentReminders] = useState(true);
   const [appStatusAlerts, setAppStatusAlerts] = useState(true);
   const [newListingsAlerts, setNewListingsAlerts] = useState(true);
-  const [paymentReceiptsAlerts, setPaymentReceiptsAlerts] = useState(true);
-  const [marketingAlerts, setMarketingAlerts] = useState(false);
 
-  // System Preference States
-  const [currency, setCurrency] = useState<'USD' | 'SOS'>('USD');
-  const [defaultCity, setDefaultCity] = useState('Mogadishu');
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
   });
 
-  const showToast = (msg: string, isError = false) => {
-    if (isError) {
-      setErrorMsg(msg);
-      setTimeout(() => setErrorMsg(null), 4000);
-    } else {
-      setMessage(msg);
-      setTimeout(() => setMessage(null), 4000);
-    }
-  };
-
-  const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      setIsDarkMode(false);
-      showToast(lang === 'so' ? 'Muuqalka Ifka ah waa la shiday' : 'Light mode enabled');
-    } else {
+  const handleThemeChange = (dark: boolean) => {
+    setIsDarkMode(dark);
+    if (dark) {
       document.documentElement.classList.add('dark');
-      setIsDarkMode(true);
-      showToast(lang === 'so' ? 'Muuqalka Madow ah waa la shiday' : 'Dark mode enabled');
+      showToast(lang === 'so' ? 'Muuqaalka Madow ah waa la shiday' : lang === 'ar' ? 'تم تفعيل الوضع الداكن' : 'Dark mode enabled');
+    } else {
+      document.documentElement.classList.remove('dark');
+      showToast(lang === 'so' ? 'Muuqaalka Ifka ah waa la shiday' : lang === 'ar' ? 'تم تفعيل الوضع الفاتح' : 'Light mode enabled');
     }
   };
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !phone.trim()) {
-      showToast(lang === 'so' ? 'Fadlan buuxi magaca iyo taleefanka' : 'Please fill full name and phone number', true);
+    if (!fullName || !phone) {
+      showToast(t.fillRequiredMsg, true);
       return;
     }
+
     if (onUpdateUser) {
       onUpdateUser({ fullName, phone, email });
     }
-    if (addAuditLog) {
-      addAuditLog('PROFILE_UPDATE', `User updated profile information: ${fullName}`);
-    }
-    showToast(lang === 'so' ? 'Xogtaada si guul leh ayaa loo kaydiyay!' : 'Profile updated successfully!');
+    showToast(lang === 'so' ? 'Xogtaada si guul leh ayaa loo kaydiyay!' : lang === 'ar' ? 'تم تحديث الملف الشخصي بنجاح!' : 'Profile updated successfully!');
   };
 
-  const handlePasswordSave = (e: React.FormEvent) => {
+  const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword) {
-      showToast(lang === 'so' ? 'Geli erayga sirta ah ee hadda' : 'Enter current password', true);
+      showToast(lang === 'so' ? 'Geli erayga sirta ah ee hadda' : lang === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password', true);
       return;
     }
     if (newPassword.length < 6) {
-      showToast(lang === 'so' ? 'Erayga sirta ah ee cusub waa inuu ka badan yahay 6 xaraf' : 'Password must be at least 6 characters', true);
+      showToast(lang === 'so' ? 'Furaha cusub waa inuu ka badnaadaa 6 xaraf' : lang === 'ar' ? 'كلمة المرور يجب ألا تقل عن ٦ أحرف' : 'Password must be at least 6 characters', true);
       return;
     }
     if (newPassword !== confirmPassword) {
-      showToast(lang === 'so' ? 'Erayada sirta ah ee cusub iskuma mid ahan!' : "New passwords don't match!", true);
+      showToast(lang === 'so' ? 'Furayaasha cusub isma leha' : lang === 'ar' ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match', true);
       return;
     }
 
-    if (addAuditLog) {
-      addAuditLog('PASSWORD_CHANGE', `User changed security credentials.`);
+    if (onUpdateUser) {
+      onUpdateUser({ password: newPassword });
     }
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    showToast(lang === 'so' ? 'Erayga sirta ah si guul leh ayaa loo baddalay!' : 'Password updated successfully!');
+    showToast(lang === 'so' ? 'Furaha sirta ah waa la beddelay!' : lang === 'ar' ? 'تم تغيير كلمة المرور بنجاح!' : 'Password changed successfully!');
   };
 
-  const handleClearCache = () => {
-    if (window.confirm(lang === 'so' ? 'Ma hubtaa inaad nadiifiso kaydka ku meel gaarka ah ee app-ka?' : 'Are you sure you want to clear system cache and refresh?')) {
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-        showToast(lang === 'so' ? 'Kaydkii waa la nadiifiyay. Bogga dib ayaa loo soo cusboonaysiinayaa...' : 'Cache cleared successfully. Reloading...');
-        setTimeout(() => {
-          window.location.reload();
-        }, 1200);
-      } catch (err) {
-        showToast('Failed to clear cache', true);
-      }
+  const handleClearSession = () => {
+    if (confirm(lang === 'so' ? 'Ma hubtaa inaad dib u cusbooneysiiso nidaamka?' : lang === 'ar' ? 'هل أنت متأكد من رغبتك في إعادة تعيين الجلسة والذاكرة المؤقتة؟' : 'Are you sure you want to reset your session?')) {
+      localStorage.removeItem('goobjoog_users');
+      window.location.reload();
     }
   };
 
-  const isArabic = lang === 'ar';
+  const handleExportData = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentUser, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `goobjoog_profile_${currentUser.username}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast(lang === 'so' ? 'Xogtaada JSON ahaan ayaa loo soo dejiyey' : lang === 'ar' ? 'تم تصدير بياناتك الشخصية كملف JSON بنجاح' : 'Personal data exported as JSON');
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors pb-16" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col" dir={isArabic ? 'rtl' : 'ltr'}>
       
-      {/* STICKY TOP PAGE HEADER */}
-      <div className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+      {/* Toast Notification Bar */}
+      {message && (
+        <div className="fixed top-4 right-4 z-50 bg-emerald-600 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold animate-bounce">
+          <CheckCircle2 size={16} />
+          <span>{message}</span>
+        </div>
+      )}
+      {errorMsg && (
+        <div className="fixed top-4 right-4 z-50 bg-rose-600 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold animate-shake">
+          <AlertTriangle size={16} />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {/* HEADER */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={onClose} 
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition active:scale-95 flex items-center gap-1.5 text-xs font-bold"
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              aria-label={t.back}
             >
-              <ArrowLeft size={18} />
-              <span className="hidden sm:inline">{lang === 'so' ? 'Dib u noqo' : lang === 'ar' ? 'رجوع' : 'Back'}</span>
+              <ArrowLeft size={20} className={isArabic ? 'rotate-180' : ''} />
             </button>
-            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
             <div>
-              <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Settings size={20} className="text-blue-600 dark:text-blue-400" />
-                <span>{lang === 'so' ? 'Qalabeynta & Nidaamka' : lang === 'ar' ? 'الإعدادات والنظام' : 'System Settings'}</span>
+              <h1 className="text-lg font-bold flex items-center gap-2">
+                <Settings size={18} className="text-blue-600" />
+                {t.settingsTitle}
               </h1>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
-                {lang === 'so' ? 'Maamul profile-kaaga, amniga, ogaysysiinta iyo nidaamka GoobJoog' : 'Manage your profile, security, notifications and platform settings'}
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800 transition active:scale-95"
-            >
-              <LogOut size={15} />
-              <span>{lang === 'so' ? 'Ka Bax' : lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
+          >
+            {t.gotIt}
+          </button>
         </div>
       </div>
 
-      {/* ALERT NOTIFICATIONS */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        {message && (
-          <div className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3.5 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
-              <span>{message}</span>
-            </div>
-            <button onClick={() => setMessage(null)} className="text-emerald-600 hover:text-emerald-800 font-black">✕</button>
-          </div>
-        )}
+      {/* MAIN BODY CONTAINER */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        {/* LEFT SETTINGS TABS NAVIGATION */}
+        <div className="md:col-span-4 lg:col-span-3 space-y-1">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition text-left ${
+              activeTab === 'profile'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900'
+            }`}
+          >
+            <User size={16} />
+            <span>{t.profileTab}</span>
+          </button>
 
-        {errorMsg && (
-          <div className="bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl p-3.5 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
-            <div className="flex items-center gap-2">
-              <AlertTriangle size={18} className="text-rose-600 dark:text-rose-400" />
-              <span>{errorMsg}</span>
-            </div>
-            <button onClick={() => setErrorMsg(null)} className="text-rose-600 hover:text-rose-800 font-black">✕</button>
-          </div>
-        )}
-      </div>
+          <button
+            onClick={() => setActiveTab('preferences')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition text-left ${
+              activeTab === 'preferences'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900'
+            }`}
+          >
+            <Globe size={16} />
+            <span>{t.preferencesTab}</span>
+          </button>
 
-      {/* USER QUICK BANNER */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              {currentUser.avatarUrl ? (
-                <img 
-                  src={currentUser.avatarUrl} 
-                  alt={currentUser.fullName} 
-                  className="w-16 h-16 rounded-full object-cover border-2 border-white/80 shadow-md group-hover:opacity-90 transition"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-white/95 text-blue-700 backdrop-blur-md flex items-center justify-center font-black text-2xl border-2 border-white/30 shadow-inner group-hover:scale-105 transition">
-                  {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
-                </div>
-              )}
-              <div className="absolute bottom-0 right-0 bg-white text-blue-600 p-1 rounded-full shadow border border-slate-200" title="Change Photo">
-                <Camera size={12} />
+          <button
+            onClick={() => setActiveTab('security')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition text-left ${
+              activeTab === 'security'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900'
+            }`}
+          >
+            <Shield size={16} />
+            <span>{t.securityTab}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition text-left ${
+              activeTab === 'notifications'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900'
+            }`}
+          >
+            <Bell size={16} />
+            <span>{t.notificationsTab}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('system')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition text-left ${
+              activeTab === 'system'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900'
+            }`}
+          >
+            <HardDrive size={16} />
+            <span>{t.systemTab}</span>
+          </button>
+        </div>
+
+        {/* RIGHT CONTENT PANEL */}
+        <div className="md:col-span-8 lg:col-span-9">
+          
+          {/* 1. PROFILE TAB */}
+          {activeTab === 'profile' && (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-base font-bold">{t.profileTab}</h3>
+                <p className="text-xs text-slate-400">{t.personalInfo}</p>
               </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-black">{currentUser.fullName}</h2>
-                {currentUser.isVerified && (
-                  <span className="bg-emerald-500/90 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                    <ShieldCheck size={12} /> Verified
-                  </span>
+
+              {/* Avatar Photo Area */}
+              <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                {currentUser.avatarUrl ? (
+                  <img
+                    src={currentUser.avatarUrl}
+                    alt={currentUser.fullName}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-blue-500 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-2xl shadow-inner">
+                    {currentUser.fullName.charAt(0)}
+                  </div>
                 )}
-              </div>
-              <p className="text-xs text-blue-100 flex items-center gap-3 mt-1">
-                <span>📧 {currentUser.email || 'no-email@goobjoog.so'}</span>
-                <span>📞 {currentUser.phone}</span>
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {currentUser.roles.map(r => (
-                  <span key={r} className="bg-white/95 text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md tracking-wider">
-                    {r}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-xs">
-            <HardDrive size={16} className="text-blue-200" />
-            <div>
-              <span className="font-bold block text-[11px]">{lang === 'so' ? 'System Status' : 'System Status'}</span>
-              <span className="text-[10px] text-emerald-300 font-semibold flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Online & Connected
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* MAIN SETTINGS CONTENT AREA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          {/* SIDEBAR TABS */}
-          <div className="lg:col-span-3 flex flex-row lg:flex-col gap-1 overflow-x-auto pb-2 lg:pb-0 scrollbar-none">
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition whitespace-nowrap ${
-                activeTab === 'profile'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <User size={18} />
-              <span>{lang === 'so' ? 'Muuqalka Profile' : lang === 'ar' ? 'الملف الشخصي' : 'Profile Info'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('preferences')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition whitespace-nowrap ${
-                activeTab === 'preferences'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <Globe size={18} />
-              <span>{lang === 'so' ? 'Doorashooyinka (App)' : lang === 'ar' ? 'تفضيلات التطبيق' : 'App Preferences'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('security')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition whitespace-nowrap ${
-                activeTab === 'security'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <Shield size={18} />
-              <span>{lang === 'so' ? 'Amniga & Erayga Sirta' : lang === 'ar' ? 'الأمان وكلمة السر' : 'Security & Password'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('notifications')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition whitespace-nowrap ${
-                activeTab === 'notifications'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <Bell size={18} />
-              <span>{lang === 'so' ? 'Ogaysysiinta & Fariimaha' : lang === 'ar' ? 'الإشعارات والتنبيهات' : 'Notifications'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('system')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition whitespace-nowrap ${
-                activeTab === 'system'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <Database size={18} />
-              <span>{lang === 'so' ? 'Nidaamka & Kaydka' : lang === 'ar' ? 'النظام وقواعد البيانات' : 'System & Diagnostics'}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('support')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs transition whitespace-nowrap ${
-                activeTab === 'support'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <HelpCircle size={18} />
-              <span>{lang === 'so' ? 'Caawimaad & Shuruuc' : lang === 'ar' ? 'الدعم والشروط' : 'Help & Terms'}</span>
-            </button>
-          </div>
-
-          {/* TAB PANELS CONTAINER */}
-          <div className="lg:col-span-9">
-            
-            {/* 1. PROFILE TAB */}
-            {activeTab === 'profile' && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6 animate-fadeIn">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-4 flex justify-between items-center">
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                      <User size={20} className="text-blue-600" />
-                      <span>{lang === 'so' ? 'Xogta Shaqsiga ah' : 'Personal Profile Information'}</span>
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {lang === 'so' ? 'Cusboonaysii magacaaga, taleefankaaga, iyo emaylkaaga ku xiran GoobJoog' : 'Update your official account details and contact information'}
-                    </p>
+                <div className="space-y-1.5 flex-1">
+                  <span className="text-xs font-bold block">{t.profilePictureTitle}</span>
+                  <p className="text-[10px] text-slate-400">{t.photoRequirements}</p>
+                  
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleAvatarFileChange}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
+                    >
+                      {t.uploadPhotoBtn}
+                    </button>
+                    {currentUser.avatarUrl && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatar}
+                        className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-xs rounded-xl transition"
+                      >
+                        {t.removePhotoBtn}
+                      </button>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                <form onSubmit={handleProfileSave} className="space-y-4">
-                  
-                  {/* Real Photo Upload / Take Photo Component */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    {/* Hidden inputs */}
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      accept="image/*" 
-                      onChange={handleAvatarFileChange} 
-                      className="hidden" 
+              {/* Personal Details Form */}
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">{t.fullName} *</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full px-3 py-2.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{t.phone} *</label>
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-3 py-2.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                      required
                     />
-                    <input 
-                      type="file" 
-                      ref={cameraInputRef} 
-                      accept="image/*" 
-                      capture="user" 
-                      onChange={handleAvatarFileChange} 
-                      className="hidden" 
-                    />
-
-                    <div className="flex items-center gap-4">
-                      {currentUser.avatarUrl ? (
-                        <img 
-                          src={currentUser.avatarUrl} 
-                          alt={fullName} 
-                          className="w-16 h-16 rounded-full object-cover border-2 border-blue-600 shadow-md"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow border-2 border-white/30">
-                          {fullName ? fullName.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                      )}
-
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                          {lang === 'so' ? 'Sawirka Profile-ka' : lang === 'ar' ? 'الصورة الشخصية' : 'Profile Picture'}
-                        </h4>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          {lang === 'so' ? 'Sawirkaaga gallery-ga ka soo bixi ama toos kamarada kaga qaad (PNG/JPG < 5MB)' : 'Upload from gallery or snap a photo with camera (PNG/JPG < 5MB)'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button 
-                        type="button" 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition active:scale-95"
-                      >
-                        <Upload size={13} />
-                        <span>{lang === 'so' ? 'Soo Dhig Sawir' : 'Upload Photo'}</span>
-                      </button>
-
-                      <button 
-                        type="button" 
-                        onClick={() => cameraInputRef.current?.click()}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition active:scale-95"
-                      >
-                        <Camera size={13} />
-                        <span>{lang === 'so' ? 'Kamarada Ka Qaad' : 'Take Photo'}</span>
-                      </button>
-
-                      {currentUser.avatarUrl && (
-                        <button 
-                          type="button" 
-                          onClick={handleRemoveAvatar}
-                          className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 transition"
-                          title="Remove Photo"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
-                    </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                        <User size={14} className="text-slate-400" />
-                        {lang === 'so' ? 'Magaca Dhameystiran' : 'Full Name'}
-                      </label>
-                      <input
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 outline-none transition"
-                        placeholder="e.g. Abdi Rahman Elmi"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                        <Phone size={14} className="text-slate-400" />
-                        {lang === 'so' ? 'Taleefanka' : 'Phone Number'}
-                      </label>
-                      <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 outline-none transition"
-                        placeholder="+252 61..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      <Mail size={14} className="text-slate-400" />
-                      {lang === 'so' ? 'Emaylka' : 'Email Address'}
-                    </label>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{t.email}</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 outline-none transition"
-                      placeholder="user@example.com"
+                      className="w-full px-3 py-2.5 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
                     />
                   </div>
+                </div>
 
-                  <div className="pt-4 flex justify-end">
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition active:scale-95 flex items-center gap-2"
-                    >
-                      <Check size={16} />
-                      <span>{lang === 'so' ? 'Kaydi Cusuobnaanta' : 'Save Changes'}</span>
-                    </button>
-                  </div>
-                </form>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
+                >
+                  {t.save}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* 2. PREFERENCES TAB (LANGUAGE & THEME) */}
+          {activeTab === 'preferences' && (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-base font-bold">{t.languageDisplayTitle}</h3>
+                <p className="text-xs text-slate-400">{t.chooseLanguageSub}</p>
               </div>
-            )}
 
-            {/* 2. PREFERENCES TAB */}
-            {activeTab === 'preferences' && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6 animate-fadeIn">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Globe size={20} className="text-blue-600" />
-                    <span>{lang === 'so' ? 'Doorashooyinka Lughada & Muuqalka' : 'Language & Display Preferences'}</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {lang === 'so' ? 'Doorata lughada aad ku isticmaalayso app-ka iyo midabka (Light/Dark)' : 'Choose your preferred system language and color theme'}
-                  </p>
-                </div>
+              {/* Language Selection */}
+              <div className="space-y-3">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Globe size={14} /> {t.systemLanguageLabel}
+                </span>
 
-                {/* Language Selection */}
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                    🌐 {lang === 'so' ? 'Lughada App-ka (Language)' : 'System Language'}
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setLang('so')}
-                      className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 font-extrabold text-xs transition ${
-                        lang === 'so'
-                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 ring-2 ring-blue-600/20'
-                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950/50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span className="text-xl">🇸🇴</span>
-                      <span>Somali</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setLang('en')}
-                      className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 font-extrabold text-xs transition ${
-                        lang === 'en'
-                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 ring-2 ring-blue-600/20'
-                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950/50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span className="text-xl">🇬🇧</span>
-                      <span>English</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setLang('ar')}
-                      className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 font-extrabold text-xs transition ${
-                        lang === 'ar'
-                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 ring-2 ring-blue-600/20'
-                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950/50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span className="text-xl">🇸🇦</span>
-                      <span>العربية</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Dark Mode Switch */}
-                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300">
-                      {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setLang('so')}
+                    className={`p-4 rounded-2xl border text-left flex items-center justify-between transition ${
+                      lang === 'so'
+                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        {lang === 'so' ? 'Muuqalka Madow (Dark Mode)' : 'Dark Color Mode'}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        {lang === 'so' ? 'U baddal shaashada midab madow si aad u yarayso culayska indhaha' : 'Toggle low-light aesthetic color scheme'}
-                      </p>
+                      <span className="text-lg block mb-0.5">🇸🇴</span>
+                      <span className="text-xs font-bold block">Af-Soomaali</span>
+                      <span className="text-[10px] text-slate-400">Somali Language</span>
                     </div>
-                  </div>
+                    {lang === 'so' && <Check size={16} className="text-blue-600" />}
+                  </button>
 
                   <button
                     type="button"
-                    onClick={toggleDarkMode}
-                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center p-1 ${
-                      isDarkMode ? 'bg-blue-600' : 'bg-slate-300'
+                    onClick={() => setLang('ar')}
+                    className={`p-4 rounded-2xl border text-left flex items-center justify-between transition ${
+                      lang === 'ar'
+                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <div className={`w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform ${
-                      isDarkMode ? 'translate-x-6' : 'translate-x-0'
-                    }`} />
+                    <div>
+                      <span className="text-lg block mb-0.5">🇸🇦</span>
+                      <span className="text-xs font-bold block">العربية</span>
+                      <span className="text-[10px] text-slate-400">Arabic (RTL)</span>
+                    </div>
+                    {lang === 'ar' && <Check size={16} className="text-blue-600" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLang('en')}
+                    className={`p-4 rounded-2xl border text-left flex items-center justify-between transition ${
+                      lang === 'en'
+                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-lg block mb-0.5">🇬🇧</span>
+                      <span className="text-xs font-bold block">English</span>
+                      <span className="text-[10px] text-slate-400">Global Edition</span>
+                    </div>
+                    {lang === 'en' && <Check size={16} className="text-blue-600" />}
                   </button>
                 </div>
-
-                {/* Currency Selection */}
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block flex items-center gap-1">
-                    <DollarSign size={16} className="text-emerald-600" />
-                    {lang === 'so' ? 'Lacagta Lacag bixinta (Default Currency)' : 'Display Currency'}
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => { setCurrency('USD'); showToast('USD currency selected'); }}
-                      className={`p-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition ${
-                        currency === 'USD'
-                          ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-600/20'
-                          : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span className="font-mono text-base">$</span>
-                      <span>USD Dollar ($)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { setCurrency('SOS'); showToast('Somali Shilling selected'); }}
-                      className={`p-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition ${
-                        currency === 'SOS'
-                          ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-600/20'
-                          : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span className="font-mono text-base">Sh.So</span>
-                      <span>Somali Shilling</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Preferred City Filter */}
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                    <MapPin size={15} className="text-rose-500" />
-                    {lang === 'so' ? 'Magaalada Ugu Muhiimsan' : 'Default Preferred City'}
-                  </label>
-                  <select
-                    value={defaultCity}
-                    onChange={(e) => { setDefaultCity(e.target.value); showToast(`Default city set to ${e.target.value}`); }}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white outline-none"
-                  >
-                    <option value="Mogadishu">Mogadishu (Muqdisho)</option>
-                    <option value="Hargeisa">Hargeisa (Hargeysa)</option>
-                    <option value="Garowe">Garowe (Garoowe)</option>
-                    <option value="Kismayo">Kismayo (Kismaayo)</option>
-                    <option value="Baidoa">Baidoa (Baydhabo)</option>
-                    <option value="Galkayo">Galkayo (Gaalkacayo)</option>
-                  </select>
-                </div>
-
               </div>
-            )}
 
-            {/* 3. SECURITY TAB */}
-            {activeTab === 'security' && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6 animate-fadeIn">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Lock size={20} className="text-blue-600" />
-                    <span>{lang === 'so' ? 'Amniga Account-ka & Erayga Sirta' : 'Account Security & Authentication'}</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {lang === 'so' ? 'Baddal eraygaaga sirta ah, fur biometrics ama 2-Factor Authentication' : 'Change password, manage login credentials and biometrics'}
-                  </p>
+              {/* Theme Mode Toggle */}
+              <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.themeModeLabel}</span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleThemeChange(false)}
+                    className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition ${
+                      !isDarkMode
+                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Sun size={20} className="text-amber-500" />
+                    <div>
+                      <span className="text-xs font-bold block">{t.lightMode}</span>
+                      <span className="text-[10px] text-slate-400">{t.lightModeDesc}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleThemeChange(true)}
+                    className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition ${
+                      isDarkMode
+                        ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Moon size={20} className="text-indigo-400" />
+                    <div>
+                      <span className="text-xs font-bold block">{t.darkMode}</span>
+                      <span className="text-[10px] text-slate-400">{t.darkModeDesc}</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. SECURITY TAB */}
+          {activeTab === 'security' && (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-base font-bold">{t.passwordSecurityTitle}</h3>
+                <p className="text-xs text-slate-400">{t.biometricDesc}</p>
+              </div>
+
+              {/* Password Change Form */}
+              <form onSubmit={handleChangePassword} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">{t.currentPassword} *</label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                    required
+                  />
                 </div>
 
-                {/* Password Form */}
-                <form onSubmit={handlePasswordSave} className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <Key size={16} className="text-blue-600" />
-                    {lang === 'so' ? 'Baddal Erayga Sirta ah' : 'Change Password'}
-                  </h4>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                      {lang === 'so' ? 'Erayga Sirta ee Hadda' : 'Current Password'}
-                    </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{t.newPassword} *</label>
                     <input
                       type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs outline-none"
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                      required
                     />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                        {lang === 'so' ? 'Erayga Sirta ah ee Cusub' : 'New Password'}
-                      </label>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                        {lang === 'so' ? 'Xaqiiji Erayga Cusub' : 'Confirm New Password'}
-                      </label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="mt-2 px-4 py-2 bg-slate-900 hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold text-xs rounded-lg transition active:scale-95"
-                  >
-                    {lang === 'so' ? 'Cusboonaysii Erayga Sirta' : 'Update Password'}
-                  </button>
-                </form>
-
-                {/* Biometrics & Security Options */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    {lang === 'so' ? 'Hababka Amniga Dheeriga ah' : 'Advanced Authentication Options'}
-                  </h4>
-
-                  <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                        {lang === 'so' ? '2-Factor Authentication (2FA via SMS)' : 'Two-Factor Authentication (2FA)'}
-                      </span>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-500">Require an SMS code when logging in from new devices</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-1 ${
-                        twoFactorEnabled ? 'bg-emerald-600' : 'bg-slate-300'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform ${
-                        twoFactorEnabled ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
-
-
-
-                </div>
-
-                {/* Logged in Sessions */}
-                <div className="space-y-3 pt-2">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <Laptop size={16} className="text-slate-500 dark:text-slate-500" />
-                    {lang === 'so' ? 'Taleefanada & PC-yada kugu xiran' : 'Active Logged-in Devices'}
-                  </h4>
-
-                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 block">
-                        {lang === 'so' ? 'Taleefankan ama Computer-kan Hadda (Current Device)' : 'Current Device'}
-                      </span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Web App • Active Session • Mogadishu, SO</span>
-                    </div>
-                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-200 dark:bg-emerald-800 px-2 py-0.5 rounded">Active</span>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* 4. NOTIFICATIONS TAB */}
-            {activeTab === 'notifications' && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6 animate-fadeIn">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Bell size={20} className="text-blue-600" />
-                    <span>{lang === 'so' ? 'Ogaysysiinta System-ka' : 'Notification Preferences'}</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {lang === 'so' ? 'Maamul fariimaha SMS-ka ama app-ka ee ku soo gaaraya' : 'Choose what types of updates you receive via Push & SMS'}
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        {lang === 'so' ? 'Fariimaha Kirada Bisheeda (Rent Reminders)' : 'Monthly Rent Payment Reminders'}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500">Get automatic SMS reminders 3 days before rent due date</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setRentReminders(!rentReminders)}
-                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-1 ${
-                        rentReminders ? 'bg-blue-600' : 'bg-slate-300'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform ${
-                        rentReminders ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        {lang === 'so' ? 'Jawaabaha Codsiyada Guriga (Application Status)' : 'House Application Approval Alerts'}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500">Instant notification when landlord approves your request</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setAppStatusAlerts(!appStatusAlerts)}
-                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-1 ${
-                        appStatusAlerts ? 'bg-blue-600' : 'bg-slate-300'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform ${
-                        appStatusAlerts ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                        {lang === 'so' ? 'Guryaha Cusub ee la Soo dhigo (New Listings Alert)' : 'New House Listings in Preferred City'}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500">Receive alert when new verified properties are listed</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setNewListingsAlerts(!newListingsAlerts)}
-                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-1 ${
-                        newListingsAlerts ? 'bg-blue-600' : 'bg-slate-300'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform ${
-                        newListingsAlerts ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 5. SYSTEM DIAGNOSTICS TAB */}
-            {activeTab === 'system' && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6 animate-fadeIn">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Database size={20} className="text-blue-600" />
-                    <span>{lang === 'so' ? 'Xaalada Nidaamka & Connectivity' : 'System Status & Technical Diagnostics'}</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {lang === 'so' ? 'Fiiri xaalada ku xirnaanshaha database-ka, nadiifi kaydka kumeel gaarka ah' : 'Review system health, database connection, clear application cache'}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Database Layer</span>
-                    <h4 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                      Supabase PostgreSQL Cloud
-                    </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-1">Status: Active & Synchronized</p>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Platform Version</span>
-                    <h4 className="text-sm font-black text-slate-900 dark:text-white">GoobJoog v2.4.0 Production</h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-1">Build: 2026.08.05 Production Release</p>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-rose-900 dark:text-rose-300">
-                      {lang === 'so' ? 'Nadiifi Kaydka Ku Meel Gaarka ah (Clear System Cache)' : 'Clear Application Storage & Cache'}
-                    </h4>
-                    <p className="text-[10px] text-rose-700 dark:text-rose-400">
-                      {lang === 'so' ? 'Fadlan isticmaal haddii aad dareento in shaashadu dib u dhacayso' : 'Clear cached session files to reset system state'}
-                    </p>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">{t.confirmPassword} *</label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                      required
+                    />
                   </div>
-
-                  <button
-                    onClick={handleClearCache}
-                    className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1.5"
-                  >
-                    <RefreshCw size={14} />
-                    <span>Nadiifi</span>
-                  </button>
                 </div>
 
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
+                >
+                  {t.updatePasswordBtn}
+                </button>
+              </form>
+
+              {/* Biometrics and 2FA Toggles */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{t.biometricSettingsTitle}</span>
+                    <p className="text-[11px] text-slate-400">{t.biometricDesc}</p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-2 py-1 rounded-lg">
+                    ✓ {t.available}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{t.twoFactorAuthTitle}</span>
+                    <p className="text-[11px] text-slate-400">{t.twoFactorDesc}</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={twoFactorEnabled}
+                    onChange={(e) => setTwoFactorEnabled(e.target.checked)}
+                    className="rounded text-blue-600 w-4 h-4 cursor-pointer"
+                  />
+                </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* 6. SUPPORT TAB */}
-            {activeTab === 'support' && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6 animate-fadeIn">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <HelpCircle size={20} className="text-blue-600" />
-                    <span>{lang === 'so' ? 'Xarunta Caawimaada & Shuruucda' : 'Help Desk & Legal Policy'}</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {lang === 'so' ? 'Nala soo xiriir 24/7 ama akhriso shuruucda kireynta' : 'Contact GoobJoog support team or view platform terms'}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-800 flex items-center gap-3">
-                    <Phone className="text-blue-600" size={24} />
-                    <div>
-                      <h4 className="text-xs font-bold text-blue-900 dark:text-blue-300">Taageerada Taleefanka</h4>
-                      <p className="text-xs font-black text-blue-700 dark:text-blue-400">+252 61 500 0000</p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center gap-3">
-                    <Mail className="text-emerald-600" size={24} />
-                    <div>
-                      <h4 className="text-xs font-bold text-emerald-900 dark:text-emerald-300">Emaylka Taageerada</h4>
-                      <p className="text-xs font-black text-emerald-700 dark:text-emerald-400">support@goobjoog.so</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <button 
-                    onClick={() => alert("GoobJoog Terms & Conditions: All property listings are verified. Rentals adhere to Somali civil lease standards.")}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950/50 dark:hover:bg-slate-800 transition text-slate-800 dark:text-slate-200"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText size={16} className="text-slate-400" />
-                      <span className="text-xs font-bold">{lang === 'so' ? 'Shuruudaha & Heshiisyada (Terms of Service)' : 'Terms of Service'}</span>
-                    </div>
-                    <ChevronRight size={16} className="text-slate-400" />
-                  </button>
-
-                  <button 
-                    onClick={() => alert("GoobJoog Privacy Policy: Your mobile wallet & personal data are encrypted.")}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950/50 dark:hover:bg-slate-800 transition text-slate-800 dark:text-slate-200"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Shield size={16} className="text-slate-400" />
-                      <span className="text-xs font-bold">{lang === 'so' ? 'Siyasada Amniga & Dahsanaanta (Privacy Policy)' : 'Privacy Policy'}</span>
-                    </div>
-                    <ChevronRight size={16} className="text-slate-400" />
-                  </button>
-                </div>
-
+          {/* 4. NOTIFICATIONS TAB */}
+          {activeTab === 'notifications' && (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <div>
+                <h3 className="text-base font-bold">{t.notificationPreferencesTitle}</h3>
+                <p className="text-xs text-slate-400">{t.notificationsTab}</p>
               </div>
-            )}
 
-          </div>
+              <div className="space-y-3">
+                <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl cursor-pointer">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.rentRemindersLabel}</span>
+                  <input
+                    type="checkbox"
+                    checked={rentReminders}
+                    onChange={(e) => setRentReminders(e.target.checked)}
+                    className="rounded text-blue-600 w-4 h-4"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl cursor-pointer">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.appAlertsLabel}</span>
+                  <input
+                    type="checkbox"
+                    checked={appStatusAlerts}
+                    onChange={(e) => setAppStatusAlerts(e.target.checked)}
+                    className="rounded text-blue-600 w-4 h-4"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl cursor-pointer">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.newListingsAlertsLabel}</span>
+                  <input
+                    type="checkbox"
+                    checked={newListingsAlerts}
+                    onChange={(e) => setNewListingsAlerts(e.target.checked)}
+                    className="rounded text-blue-600 w-4 h-4"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* 5. SYSTEM & STORAGE TAB */}
+          {activeTab === 'system' && (
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+              <div>
+                <h3 className="text-base font-bold">{t.systemTab}</h3>
+                <p className="text-xs text-slate-400">{t.systemResetDesc}</p>
+              </div>
+
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-900 dark:text-amber-200 text-xs space-y-1">
+                <span className="font-bold block">⚠️ {t.databaseSandboxTitle}</span>
+                <p>{t.sandboxAlert}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleClearSession}
+                  className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition"
+                >
+                  {t.resetSessionBtn}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportData}
+                  className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition"
+                >
+                  {t.exportDataBtn}
+                </button>
+              </div>
+            </div>
+          )}
 
         </div>
+
       </div>
 
     </div>

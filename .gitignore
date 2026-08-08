@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Binaries and large media files
+*.apk
+*.mp4
+*.zip
