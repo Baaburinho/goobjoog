@@ -122,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>🏠 {t.navHouses}</span>
                 </button>
 
-                {((currentUser.roles || []).includes('homeowner') || (currentUser.roles || []).includes('landlord' as any) || (currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) && (
+                {((currentUser.roles || []).includes('homeowner') || (currentUser.roles || []).includes('landlord' as any) || currentUser.upgradeStatus === 'approved' || (currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) && (
                   <button
                     onClick={() => setActiveLayout('homeowner')}
                     className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${

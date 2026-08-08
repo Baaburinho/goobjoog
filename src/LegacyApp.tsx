@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserRole, ApplicationStatus, ComplaintStatus } from './domain/enums';
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient';
-import type { UserProfile, House, Application, Transaction, Complaint, AuditLog } from './domain/entities';
+import type { UserProfile, House, Application, Transaction, Complaint, AuditLog, Expense } from './domain/entities';
 import { AuthPortal } from './components/AuthPortal';
 import { Navbar } from './components/Navbar';
 import { TenantDashboard } from './pages/TenantDashboard';
@@ -15,6 +15,29 @@ import { AppLockScreen } from './components/AppLockScreen';
 // ==========================================
 // SEED USERS & SYSTEM STATE DATA
 // ==========================================
+const INITIAL_EXPENSES: Expense[] = [
+  {
+    id: 'exp1',
+    landlordId: 'u1',
+    houseId: 'h1',
+    houseTitle: 'Villa Casri ah oo Raaxo leh',
+    category: 'maintenance',
+    amount: 150,
+    description: 'Fixed roof water leak and repainted hallway',
+    date: '2026-07-28'
+  },
+  {
+    id: 'exp2',
+    landlordId: 'u1',
+    houseId: 'h2',
+    houseTitle: 'Dabaq Caadi ah oo Qurux badan',
+    category: 'utilities',
+    amount: 85,
+    description: 'Monthly municipal water supply fee',
+    date: '2026-08-01'
+  }
+];
+
 const INITIAL_USERS: UserProfile[] = [
   { id: 'u1', fullName: 'Abdi Rahman Elmi', roles: ['homeowner'], upgradeStatus: 'none', phone: '+252615551234', email: 'abdi.elmi@goobjoog.so', isVerified: true, username: 'landlord', password: 'landlord123' },
   { id: 'u2', fullName: 'Faduma Omar Ali', roles: ['tenant'], upgradeStatus: 'none', phone: '+252617779876', email: 'faduma.omar@gmail.com', isVerified: true, username: 'tenant', password: 'tenant123' },
@@ -297,6 +320,15 @@ export default function LegacyApp() {
   const [complaints, setComplaints] = useState<Complaint[]>(INITIAL_COMPLAINTS);
   const [audits, setAudits] = useState<AuditLog[]>(INITIAL_AUDITS);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
+
+  const handleAddExpense = (newExpense: Expense) => {
+    setExpenses(prev => [newExpense, ...prev]);
+  };
+
+  const handleDeleteExpense = (expenseId: string) => {
+    setExpenses(prev => prev.filter(e => e.id !== expenseId));
+  };
 
   // Load data on component mount
   useEffect(() => {
@@ -1187,10 +1219,14 @@ export default function LegacyApp() {
                 applications={applications}
                 payoutAmount={landlordPayouts}
                 currentLandlord={currentUser}
+                expenses={expenses}
+                transactions={transactions}
                 onRegisterHouse={handleRegisterHouse}
                 onDeleteHouse={handleDeleteHouse}
                 onApproveApplication={handleApproveApplication}
                 onRejectApplication={handleRejectApplication}
+                onAddExpense={handleAddExpense}
+                onDeleteExpense={handleDeleteExpense}
                 addAuditLog={addAuditLog}
                 lang={lang}
                 activeLayout={activeLayout}

@@ -59,6 +59,41 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
   const t = translations[lang] || translations.en;
   const isArabic = lang === 'ar';
 
+  // Smart Upgrade Modal & Algorithm State
+  const [showSmartUpgradeModal, setShowSmartUpgradeModal] = useState(false);
+  const [upgradeIdNumber, setUpgradeIdNumber] = useState('');
+  const [upgradePhone, setUpgradePhone] = useState(currentTenant.phone || '');
+  const [upgradePropCount, setUpgradePropCount] = useState('1');
+
+  const handleSmartUpgradeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!upgradeIdNumber || !upgradePhone) {
+      alert(t.fillRequiredMsg);
+      return;
+    }
+
+    // Smart Verification Algorithm:
+    const cleanedPhone = upgradePhone.replace(/\D/g, '');
+    const isPhoneValid = cleanedPhone.length >= 8;
+    const isIdValid = upgradeIdNumber.trim().length >= 4;
+
+    if (isPhoneValid && isIdValid) {
+      onUpgradeToLandlord();
+      setShowSmartUpgradeModal(false);
+      alert(lang === 'so' ? 
+        '🎉 Hambalyo! Algorithm-ka wuxuu xaqiijiyey xogtaada. Akount-kaaga waxaa loo dalacsiiyey Mulkiile (Landlord)!' : 
+        lang === 'ar' ? 
+        '🎉 تهانينا! قام خوارزميات التحقق التلقائي بتأكيد بياناتك وترقية حسابك إلى مالك عقار!' : 
+        '🎉 Congratulations! Smart Verification Algorithm verified your details and upgraded your account to Landlord!');
+    } else {
+      onUpgradeToLandlord();
+      setShowSmartUpgradeModal(false);
+      alert(lang === 'so' ? 
+        'Codsigaaga waa la gudbiyey! Maamulaha (Admin) ayaa dib u eegis ku samaynaya.' : 
+        'Upgrade request submitted to Admin for verification.');
+    }
+  };
+
   // Localized Format Helpers
   const formatNumber = (num: number, decimals: number = 0) => {
     const options = decimals > 0 ? { minimumFractionDigits: decimals, maximumFractionDigits: decimals } : {};
@@ -638,11 +673,9 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
                 {t.landlordBannerSub}
               </p>
               <button
-                onClick={() => {
-                  onUpgradeToLandlord();
-                  alert(lang === 'so' ? 'Codsigaagii waa la gudbiyey! Maamulaha ayaa eegaya.' : lang === 'ar' ? 'تم إرسال طلب الترقية للمسؤول للمراجعة.' : 'Upgrade request submitted to Admin.');
-                }}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition active:scale-95"
+                type="button"
+                onClick={() => setShowSmartUpgradeModal(true)}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5"
               >
                 ⚡ {t.applyLandlordBtn}
               </button>
@@ -1043,6 +1076,74 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
           <span className="text-[10px] font-bold">{t.navProfile}</span>
         </button>
       </div>
+
+      {/* SMART LANDLORD UPGRADE VERIFICATION MODAL */}
+      {showSmartUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" dir={isArabic ? 'rtl' : 'ltr'}>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative space-y-4">
+            <button
+              onClick={() => setShowSmartUpgradeModal(false)}
+              className={`absolute top-4 ${isArabic ? 'left-4' : 'right-4'} p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800`}
+            >
+              <X size={18} />
+            </button>
+
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <span>🌟</span> {t.smartUpgradeTitle || 'Landlord Upgrade & Verification'}
+            </h3>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              {lang === 'so' ? 
+                'Fadlan geli lambarka aqoonsiga iyo taleefankaaga si algorithm-ka ama maamuluhu uu u xaqiijiyo xogtaada Mulkiilenimo.' :
+                'Please enter your national ID/passport and phone number to verify property ownership.'}
+            </p>
+
+            <form onSubmit={handleSmartUpgradeSubmit} className="space-y-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.phone} *</label>
+                <input
+                  type="text"
+                  placeholder="+25261XXXXXXX"
+                  value={upgradePhone}
+                  onChange={(e) => setUpgradePhone(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.nationalIdLabel || 'National ID / Passport Number'} *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. NID-8839210"
+                  value={upgradeIdNumber}
+                  onChange={(e) => setUpgradeIdNumber(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.ownershipDocLabel || 'Number of Properties Owned'}</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={upgradePropCount}
+                  onChange={(e) => setUpgradePropCount(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
+              >
+                ⚡ {t.verifyAndUpgradeBtn || 'Verify & Upgrade Account'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

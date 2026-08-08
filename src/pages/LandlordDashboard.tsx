@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Home, Check, X, Camera, Image, Monitor, Smartphone, MapPin, Navigation, Crosshair } from 'lucide-react';
-import type { House, Application, UserProfile } from '../domain/entities';
+import type { House, Application, UserProfile, Expense, Transaction } from '../domain/entities';
 import { HouseStatus, UserRole } from '../domain/enums';
 import { translations } from '../lib/translations';
 import { MapPicker } from '../components/MapPicker';
@@ -12,10 +12,14 @@ interface LandlordDashboardProps {
   applications: Application[];
   payoutAmount: number;
   currentLandlord: UserProfile;
+  expenses?: Expense[];
+  transactions?: Transaction[];
   onRegisterHouse: (newHouse: House) => void;
   onDeleteHouse: (houseId: string) => void;
   onApproveApplication: (appId: string) => void;
   onRejectApplication: (appId: string, feedback: string) => void;
+  onAddExpense?: (expense: Expense) => void;
+  onDeleteExpense?: (expenseId: string) => void;
   addAuditLog: (action: string, details: string) => void;
   lang: 'en' | 'so' | 'ar';
   activeLayout: 'tenant' | 'homeowner' | 'administrator';
@@ -27,10 +31,14 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
   applications,
   payoutAmount,
   currentLandlord,
+  expenses = [],
+  transactions = [],
   onRegisterHouse,
   onDeleteHouse,
   onApproveApplication,
   onRejectApplication,
+  onAddExpense,
+  onDeleteExpense,
   addAuditLog,
   lang,
   activeLayout,
@@ -58,8 +66,46 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
   const [newLat, setNewLat] = useState<number | null>(null);
   const [newLng, setNewLng] = useState<number | null>(null);
   const [newLocationSource, setNewLocationSource] = useState<'GPS_VERIFIED' | 'MAP_SELECTED' | null>(null);
-  const [showMapPicker, setShowMapPicker] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  // Financial & Expense Modal State
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [expCategory, setExpCategory] = useState<'maintenance' | 'utilities' | 'taxes' | 'renovation' | 'management' | 'other'>('maintenance');
+  const [expAmount, setExpAmount] = useState('');
+  const [expHouseId, setExpHouseId] = useState('');
+  const [expDesc, setExpDesc] = useState('');
+
+  const handleCreateExpense = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expAmount || !expDesc) {
+      alert(t.fillRequiredMsg);
+      return;
+    }
+    const amt = parseFloat(expAmount);
+    if (isNaN(amt) || amt <= 0) {
+      alert(lang === 'so' ? 'Geli lacag sax ah' : 'Please enter a valid amount');
+      return;
+    }
+
+    const targetHouse = houses.find(h => h.id === expHouseId);
+
+    const newExp: Expense = {
+      id: `exp_${Date.now()}`,
+      landlordId: currentLandlord.id,
+      houseId: expHouseId || undefined,
+      houseTitle: targetHouse ? targetHouse.title : undefined,
+      category: expCategory,
+      amount: amt,
+      description: expDesc,
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    if (onAddExpense) {
+      onAddExpense(newExp);
+    }
+    addAuditLog('EXPENSE_LOG', `Logged expense of $${amt} for category: ${expCategory}`);
+    setShowExpenseModal(false);
+    setExpAmount('');
+    setExpDesc('');
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -301,10 +347,37 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
   const myHouses = houses.filter(h => h.landlordId === currentLandlord.id || h.landlordPhone === currentLandlord.phone);
   const myHouseIds = myHouses.map(h => h.id);
   const pendingApplications = applications.filter(a => myHouseIds.includes(a.houseId) && a.status === 'pending');
+  const myExpenses = expenses.filter(e => e.landlordId === currentLandlord.id);
+  const totalExpenseAmount = myExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const netProfit = payoutAmount - totalExpenseAmount;
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in" dir={isArabic ? 'rtl' : 'ltr'}>
       
+      {/* HEADER & ROLE SWITCHER BAR */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h1 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            🏡 {lang === 'so' ? 'Qeybta Mulkiilaha & Xisaabaadka' : lang === 'ar' ? 'لوحة المالك والحسابات' : 'Landlord Dashboard & Ledger'}
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {lang === 'so' ? 'Maamul guryahaaga, eeg dakhliga kireystayaasha, oo diiwaangeli kharashadka.' :
+             lang === 'ar' ? 'إدارة عقاراتك ومتابعة الإيرادات وتسجيل المصروفات.' :
+             'Manage your properties, track rental income, and log expenses.'}
+          </p>
+        </div>
+
+        {setActiveLayout && (
+          <button
+            onClick={() => setActiveLayout('tenant')}
+            className="px-4 py-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 hover:bg-blue-100 font-bold text-xs rounded-xl transition flex items-center gap-2 border border-blue-200 dark:border-blue-800 active:scale-95 shadow-sm"
+          >
+            <span>🏠</span>
+            <span>{t.switchToTenantMode || 'Switch to Tenant View'}</span>
+          </button>
+        )}
+      </div>
+
       {/* STATS OVERVIEW CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
@@ -314,18 +387,6 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
           </div>
           <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center font-bold text-xl">
             🏠
-          </div>
-        </div>
-
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t.rentedUnits}</span>
-            <span className="text-2xl font-black text-slate-800 dark:text-slate-100">
-              {formatNumber(myHouses.filter(h => h.status === 'rented').length)}
-            </span>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center font-bold text-xl">
-            🔑
           </div>
         </div>
 
@@ -341,12 +402,107 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
 
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t.pending}</span>
-            <span className="text-2xl font-black text-amber-500">{formatNumber(pendingApplications.length)}</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t.totalExpenses || 'Total Expenses'}</span>
+            <span className="text-2xl font-black text-rose-600">${formatNumber(totalExpenseAmount)}</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center font-bold text-xl">
-            📋
+          <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 flex items-center justify-center font-bold text-xl">
+            🛠️
           </div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">{t.netProfit || 'Net Profit'}</span>
+            <span className={`text-2xl font-black ${netProfit >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-rose-600'}`}>
+              ${formatNumber(netProfit)}
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center font-bold text-xl">
+            📈
+          </div>
+        </div>
+      </div>
+
+      {/* FINANCIAL ACCOUNTING & EXPENSE LEDGER */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              📊 {t.financialLedgerTab || 'Financial Ledger & Accounting'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {lang === 'so' ? 'Dakhliga kireystayaasha, kharashadka guryaha, iyo faa\'iidada net-ka ah' :
+               lang === 'ar' ? 'متابعة الإيرادات والمصروفات وصافي الأرباح' :
+               'Rental revenue, property maintenance expenses, and net profit analysis.'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowExpenseModal(true)}
+            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 active:scale-95"
+          >
+            <Plus size={16} />
+            <span>{t.logNewExpenseBtn || 'Log New Expense'}</span>
+          </button>
+        </div>
+
+        {/* LOGGED EXPENSES TABLE */}
+        <div className="pt-1">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            {lang === 'so' ? 'Diiwaanka Kharashadka Guryaha' : lang === 'ar' ? 'سجل مصروفات العقارات' : 'Logged Property Expenses'}
+          </h4>
+
+          {myExpenses.length === 0 ? (
+            <div className="text-center py-6 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-400">
+              {t.noExpensesLogged || 'No expenses recorded yet. Click "Log New Expense" above.'}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="p-3">{t.expenseCategory || 'Category'}</th>
+                    <th className="p-3">{t.propertyTitleCol || 'Property'}</th>
+                    <th className="p-3">{t.expenseDescription || 'Description'}</th>
+                    <th className="p-3">{t.expenseDate || 'Date'}</th>
+                    <th className="p-3">{t.expenseAmount || 'Amount'}</th>
+                    {onDeleteExpense && <th className="p-3 text-right"></th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {myExpenses.map(exp => (
+                    <tr key={exp.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                      <td className="p-3 font-bold text-slate-700 dark:text-slate-300">
+                        {exp.category === 'maintenance' ? '🛠️ ' + (t.maintenanceCat || 'Maintenance') :
+                         exp.category === 'utilities' ? '💧⚡ ' + (t.utilitiesCat || 'Utilities') :
+                         exp.category === 'taxes' ? '🏛️ ' + (t.taxesCat || 'Taxes') :
+                         exp.category === 'renovation' ? '🔨 ' + (t.renovationCat || 'Renovation') :
+                         exp.category === 'management' ? '👔 ' + (t.managementCat || 'Management') :
+                         '📦 ' + (t.otherCat || 'Other')}
+                      </td>
+                      <td className="p-3 text-slate-600 dark:text-slate-400">{exp.houseTitle || 'All Properties'}</td>
+                      <td className="p-3 text-slate-600 dark:text-slate-400">{exp.description}</td>
+                      <td className="p-3 text-slate-500 font-mono text-[11px]">{exp.date}</td>
+                      <td className="p-3 font-bold text-rose-600">-${formatNumber(exp.amount)}</td>
+                      {onDeleteExpense && (
+                        <td className="p-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => onDeleteExpense(exp.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded transition"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -734,6 +890,87 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
             >
               {t.confirmDeclineBtn}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* LOG NEW EXPENSE MODAL */}
+      {showExpenseModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" dir={isArabic ? 'rtl' : 'ltr'}>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative space-y-4">
+            <button
+              onClick={() => setShowExpenseModal(false)}
+              className={`absolute top-4 ${isArabic ? 'left-4' : 'right-4'} p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800`}
+            >
+              <X size={18} />
+            </button>
+
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <span>🛠️</span> {t.logNewExpenseBtn || 'Log New Expense'}
+            </h3>
+
+            <form onSubmit={handleCreateExpense} className="space-y-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.expenseCategory || 'Category'} *</label>
+                <select
+                  value={expCategory}
+                  onChange={(e) => setExpCategory(e.target.value as any)}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                >
+                  <option value="maintenance">🛠️ {t.maintenanceCat || 'Maintenance & Repairs'}</option>
+                  <option value="utilities">💧⚡ {t.utilitiesCat || 'Utilities & Bills'}</option>
+                  <option value="taxes">🏛️ {t.taxesCat || 'Taxes & Govt Fees'}</option>
+                  <option value="renovation">🔨 {t.renovationCat || 'Renovation & Upgrades'}</option>
+                  <option value="management">👔 {t.managementCat || 'Management & Agent Fees'}</option>
+                  <option value="other">📦 {t.otherCat || 'Other Expenses'}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.propertyTitleCol || 'Property'} (Optional)</label>
+                <select
+                  value={expHouseId}
+                  onChange={(e) => setExpHouseId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                >
+                  <option value="">{lang === 'so' ? 'Dhammaan Guryaha' : 'All Properties'}</option>
+                  {myHouses.map(h => (
+                    <option key={h.id} value={h.id}>{h.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.expenseAmount || 'Amount ($)'} *</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 150"
+                  value={expAmount}
+                  onChange={(e) => setExpAmount(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.expenseDescription || 'Description'} *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Fixed plumbing leak in bathroom"
+                  value={expDesc}
+                  onChange={(e) => setExpDesc(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition"
+              >
+                {t.logNewExpenseBtn || 'Save Expense'}
+              </button>
+            </form>
           </div>
         </div>
       )}
