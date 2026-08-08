@@ -1218,7 +1218,7 @@ export default function LegacyApp() {
                 houses={houses}
                 applications={applications}
                 payoutAmount={landlordPayouts}
-                currentLandlord={currentUser}
+                currentLandlord={currentUser || INITIAL_USERS[0]}
                 expenses={expenses}
                 transactions={transactions}
                 onRegisterHouse={handleRegisterHouse}

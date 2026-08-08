@@ -89,7 +89,7 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
 
     const newExp: Expense = {
       id: `exp_${Date.now()}`,
-      landlordId: currentLandlord.id,
+      landlordId: currentLandlord?.id || 'u1',
       houseId: expHouseId || undefined,
       houseTitle: targetHouse ? targetHouse.title : undefined,
       category: expCategory,
@@ -296,9 +296,9 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
 
     const newHouse: House = {
       id: `h_${Date.now()}`,
-      landlordId: currentLandlord.id,
-      landlordName: currentLandlord.fullName,
-      landlordPhone: currentLandlord.phone,
+      landlordId: currentLandlord?.id || 'u1',
+      landlordName: currentLandlord?.fullName || 'Landlord',
+      landlordPhone: currentLandlord?.phone || '',
       title: newTitle,
       description: newDesc || (lang === 'so' ? 'Guri casri ah oo ku yaala meel amni ah.' : lang === 'ar' ? 'عقار سكني حديث في موقع آمن ومميز.' : 'Modern family property in a secure neighborhood.'),
       pricePerMonth: price,
@@ -344,12 +344,14 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
     alert(lang === 'so' ? 'Gurigaaga cusub si guul leh ayaa loo diiwaangeliyey!' : lang === 'ar' ? 'تم إدراج عقارك الجديد بنجاح في النظام!' : 'Property listed successfully!');
   };
 
-  const myHouses = houses.filter(h => h.landlordId === currentLandlord.id || h.landlordPhone === currentLandlord.phone);
+  const landlordId = currentLandlord?.id || '';
+  const landlordPhone = currentLandlord?.phone || '';
+  const myHouses = (houses || []).filter(h => (landlordId && h.landlordId === landlordId) || (landlordPhone && h.landlordPhone === landlordPhone));
   const myHouseIds = myHouses.map(h => h.id);
-  const pendingApplications = applications.filter(a => myHouseIds.includes(a.houseId) && a.status === 'pending');
-  const myExpenses = expenses.filter(e => e.landlordId === currentLandlord.id);
-  const totalExpenseAmount = myExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const netProfit = payoutAmount - totalExpenseAmount;
+  const pendingApplications = (applications || []).filter(a => myHouseIds.includes(a.houseId) && a.status === 'pending');
+  const myExpenses = (expenses || []).filter(e => landlordId && e.landlordId === landlordId);
+  const totalExpenseAmount = myExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const netProfit = (payoutAmount || 0) - totalExpenseAmount;
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in" dir={isArabic ? 'rtl' : 'ltr'}>
