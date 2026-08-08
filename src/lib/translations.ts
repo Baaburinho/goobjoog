@@ -697,10 +697,10 @@ export const translations = {
   },
   ar: {
     // Brand & Common
-    appName: "جوب جوج",
-    brandTitle: "جوب جوج 🇸🇴",
+    appName: "GoobJoog",
+    brandTitle: "GoobJoog 🇸🇴",
     subtitle: "نظام تأجير المنازل وإدارة الحسابات المالية في الصومال",
-    welcome: "مرحباً بك في جوب جوج 🇸🇴",
+    welcome: "مرحباً بك في GoobJoog 🇸🇴",
     search: "بحث",
     filter: "تصفية",
     clear: "مسح",

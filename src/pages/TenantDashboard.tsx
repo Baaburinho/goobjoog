@@ -78,6 +78,46 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
     }
   };
 
+  const getHouseTitle = (house: House | null | undefined): string => {
+    if (!house) return '';
+    if (lang === 'ar') {
+      if (house.id === 'h1') return 'فيلا صومالية فاخرة';
+      if (house.id === 'h2') return 'شقة سكنية راقية';
+      if (house.id === 'h3') return 'منزل عائلي فسيح ٤ غرف';
+      if (house.id === 'h4') return 'منزل ساحلي قرب الميناء';
+      if (house.id === 'h5') return 'فيلا حديثة ٣ غرف في إسحا';
+      if (house.id === 'h6') return 'منزل عائلي مريح';
+    } else if (lang === 'so') {
+      if (house.id === 'h1') return 'Villa Casri ah oo Raaxo leh';
+      if (house.id === 'h2') return 'Dabaq Caadi ah oo Qurux badan';
+      if (house.id === 'h3') return 'Guri Qoys oo 4 Qol ah oo Waasac ah';
+      if (house.id === 'h4') return 'Guri Xeebeed 2 Qol ah oo Dekedda u Dhaw';
+      if (house.id === 'h5') return 'Villa Casri ah oo 3 Qol ah Isha';
+      if (house.id === 'h6') return 'Guri Qoys oo Amni ah';
+    }
+    return house.title;
+  };
+
+  const getHouseDescription = (house: House | null | undefined): string => {
+    if (!house) return '';
+    if (lang === 'ar') {
+      if (house.id === 'h1') return 'فيلا راقية ٤ غرف نوم مع حراسة أمنية ممتازة بالقرب من شارع المطار وشارع مكة المكرمة.';
+      if (house.id === 'h2') return 'شقة مريحة غرفتي نوم مع ماء نقي وكهرباء بالطاقة الشمسية على مدار ٢٤ ساعة.';
+      if (house.id === 'h3') return 'مسكن مثالي للعائلات الكبيرة في حي هودمان الهادئ في غاروي. يشمل شبكة فايبر سريعة وخزان مياه احتياطي.';
+      if (house.id === 'h4') return 'بناء صومالي تقليدي مميز مع نسيم بحري عليل وتدفق مياه مستمر بالقرب من مركز علنلي والشاطئ.';
+      if (house.id === 'h5') return 'منزل عائلي تم تجديده حديثاً في حي إسحا السكني الهادئ في بيدوا مع موقف سيارات آمن وواي فاي.';
+      if (house.id === 'h6') return 'فيلا جميلة ومؤمنة في حي هودان بمقديشو مع كهرباء احتياطية ومياه متوفرة باستمرار.';
+    } else if (lang === 'so') {
+      if (house.id === 'h1') return 'Villa 4 qol ah oo aad u qurux badan, amni la isku halleyn karo, una dhaw waddada KM4 iyo Maka Al-Mukarama.';
+      if (house.id === 'h2') return 'Dabaq waasac ah oo 2 qol ah oo leh biyo joogto ah iyo koronto ku shaqeysa cadceedda.';
+      if (house.id === 'h3') return 'Guri aad ugu habboon qoysaska ballaaran oo ku yaala degmada deggan ee Hodman ee Garoowe.';
+      if (house.id === 'h4') return 'Guri qaab-dhismeed dhaqameed qurux badan, neecawda badda, iyo biyo joogto ah oo ku yaala Calanley, Kismaayo.';
+      if (house.id === 'h5') return 'Guri qoys oo dhawaan la dayactiray oo ku yaala aagga deggan ee Isha, Baydhabo.';
+      if (house.id === 'h6') return 'Guri aad u qurux badan oo ku yaala degmada Hodan ee Muqdisho oo leh amni buuxa.';
+    }
+    return house.description;
+  };
+
   // Navigation / Filter States
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'apps' | 'saved' | 'payments' | 'profile'>('home');
   const [searchQuery, setSearchQuery] = useState('');
@@ -447,7 +487,9 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredHouses.map((house) => {
-                const avgRating = house.ratingCount > 0 ? (house.ratingSum / house.ratingCount).toFixed(1) : 'N/A';
+                const avgRating = house.ratingCount > 0 
+                  ? formatNumber(parseFloat((house.ratingSum / house.ratingCount).toFixed(1)), 1) 
+                  : (lang === 'ar' ? 'جديد' : lang === 'so' ? 'Cusub' : 'New');
                 const isFavorited = favorites.includes(house.id);
                 return (
                   <div
@@ -459,17 +501,17 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
                     <div className="relative h-44 overflow-hidden bg-slate-100 dark:bg-slate-800">
                       <img
                         src={house.imageUrl}
-                        alt={house.title}
+                        alt={getHouseTitle(house)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       
-                      <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+                      <div className={`absolute top-3 ${isArabic ? 'right-3' : 'left-3'} flex flex-col gap-1.5 items-start`}>
                         <span className="bg-emerald-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
                           ✓ {t.verified}
                         </span>
                       </div>
 
-                      <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+                      <div className={`absolute top-3 ${isArabic ? 'left-3' : 'right-3'} flex flex-col gap-1.5 items-end`}>
                         <div className="bg-white/95 text-slate-800 dark:bg-slate-900 dark:text-slate-200 text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
                           <MapPin size={9} className="text-blue-600" />
                           {getCityName(house.city)}
@@ -479,7 +521,7 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
                       {/* Favorite Button */}
                       <button
                         onClick={(e) => onToggleFavorite(house.id, e)}
-                        className={`absolute bottom-3 right-3 p-2 rounded-full shadow-md backdrop-blur-md transition active:scale-90 ${
+                        className={`absolute bottom-3 ${isArabic ? 'left-3' : 'right-3'} p-2 rounded-full shadow-md backdrop-blur-md transition active:scale-90 ${
                           isFavorited ? 'bg-rose-500 text-white' : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 hover:text-rose-500'
                         }`}
                         aria-label="Save Favorite"
@@ -489,15 +531,15 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
                     </div>
 
                     {/* Card Content */}
-                    <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                    <div className="p-4 flex-1 flex flex-col justify-between gap-3" dir={isArabic ? 'rtl' : 'ltr'}>
                       <div>
                         <div className="flex justify-between items-start mb-1">
-                          <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm line-clamp-1 group-hover:text-blue-600 transition">
-                            {house.title}
+                          <h4 className={`font-bold text-slate-800 dark:text-slate-100 text-sm line-clamp-1 group-hover:text-blue-600 transition ${isArabic ? 'text-right' : 'text-left'}`}>
+                            {getHouseTitle(house)}
                           </h4>
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                          {house.description}
+                        <p className={`text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed ${isArabic ? 'text-right' : 'text-left'}`}>
+                          {getHouseDescription(house)}
                         </p>
                       </div>
 
@@ -632,12 +674,12 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
                 alt={selectedHouse.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-3 left-3 right-3 bg-slate-950/70 backdrop-blur-md p-3 rounded-xl text-white flex justify-between items-center">
+              <div className="absolute bottom-3 left-3 right-3 bg-slate-950/70 backdrop-blur-md p-3 rounded-xl text-white flex justify-between items-center" dir={isArabic ? 'rtl' : 'ltr'}>
                 <div>
-                  <h3 className="text-base font-bold">{selectedHouse.title}</h3>
+                  <h3 className="text-base font-bold">{getHouseTitle(selectedHouse)}</h3>
                   <span className="text-xs text-slate-300">{selectedHouse.district}, {getCityName(selectedHouse.city)}</span>
                 </div>
-                <div className="text-right">
+                <div className={isArabic ? 'text-left' : 'text-right'}>
                   <span className="text-xl font-black text-emerald-400">${formatNumber(selectedHouse.pricePerMonth)}</span>
                   <span className="text-[10px] text-slate-300 block">{t.perMonth}</span>
                 </div>
@@ -645,10 +687,10 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
             </div>
 
             {/* Description & Specifications */}
-            <div className="space-y-3">
+            <div className="space-y-3" dir={isArabic ? 'rtl' : 'ltr'}>
               <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t.propertyDescriptionField}</h4>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                {selectedHouse.description}
+                {getHouseDescription(selectedHouse)}
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
