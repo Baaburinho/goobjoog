@@ -144,8 +144,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             {!isNative && (
               <div className="flex items-center gap-2">
                 <a
-                  href="/app-debug.apk"
+                  href="/GoobJoog-Android.apk"
                   download="GoobJoog-Android.apk"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95 touch-target"
                   title={t.androidApp}
                 >
@@ -296,8 +298,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {!isNative && (
                   <div className="flex-1 flex gap-2">
                     <a
-                      href="/app-debug.apk"
+                      href="/GoobJoog-Android.apk"
                       download="GoobJoog-Android.apk"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95"
                     >
                       <Download size={14} />

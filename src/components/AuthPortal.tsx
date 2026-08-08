@@ -20,7 +20,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   lang, 
   setLang
 }) => {
-  const [activeMode, setActiveMode] = useState<'login' | 'register_public' | 'register_staff'>('login');
+  const [activeMode, setActiveMode] = useState<'login' | 'register_public'>('login');
   const [hasBiometricHardware, setHasBiometricHardware] = useState<boolean>(true);
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -84,7 +84,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     if (foundUser) {
       onLoginSuccess(foundUser);
     } else {
-      alert(`${t.loginFailedMsg}\n\nDemo seeds:\n- tenant / tenant123\n- landlord / landlord123\n- admin / admin123`);
+      alert(`${t.loginFailedMsg}\n\nDemo seeds:\n- tenant / tenant123\n- landlord / landlord123`);
     }
   };
 
@@ -271,8 +271,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
             </div>
 
             {/* Inset Neumorphic Segmented Tab Toggle (Log In / Sign Up) */}
-            {activeMode !== 'register_staff' && (
-              <div className="flex bg-[#f4f7fb] dark:bg-slate-800 p-1.5 rounded-2xl shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none border border-slate-200/40 dark:border-slate-700">
+            <div className="flex bg-[#f4f7fb] dark:bg-slate-800 p-1.5 rounded-2xl shadow-[inset_3px_3px_6px_#c8d3e6,inset_-3px_-3px_6px_#ffffff] dark:shadow-none border border-slate-200/40 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => {
@@ -302,7 +301,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   {t.registerCustomer}
                 </button>
               </div>
-            )}
 
             {/* LOGIN FORM */}
             {activeMode === 'login' && (
@@ -392,20 +390,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                       </button>
                     </div>
 
-                    {/* Admin row */}
-                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
-                        <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">🛡️</span>
-                        <span>{t.admin} (admin)</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleAutofill('admin', 'admin123')}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#4873b8] hover:bg-[#3b63a0] text-white text-[11px] font-bold shadow transition active:scale-95"
-                      >
-                        {t.autofill}
-                      </button>
-                    </div>
                   </div>
                 </div>
 
@@ -551,123 +535,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               </div>
             )}
 
-            {/* STAFF SIGN UP */}
-            {activeMode === 'register_staff' && (
-              <form onSubmit={(e) => handleRegister(e, true)} className="space-y-2.5 pt-1">
-                <div className="flex justify-between items-center pb-1 border-b border-slate-200 dark:border-slate-800">
-                  <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                    <Shield className="text-[#4873b8]" size={14} />
-                    {t.registerStaff}
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setActiveMode('login')}
-                    className="text-[10px] text-slate-500 hover:underline font-bold"
-                  >
-                    {t.back}
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.fullName} *</label>
-                  <input
-                    type="text"
-                    placeholder="Eng. Huda Duale"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.phone} *</label>
-                    <input
-                      type="text"
-                      placeholder="+25261XXXXXXX"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.role} *</label>
-                    <select
-                      value={staffRole}
-                      onChange={(e) => setStaffRole(e.target.value as any)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
-                    >
-                      <option value="administrator">{t.admin}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.username} *</label>
-                    <input
-                      type="text"
-                      placeholder="huda_admin"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">{t.password} *</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 focus:ring-2 focus:ring-[#4873b8] focus:outline-none text-slate-800 dark:text-slate-100"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl shadow transition mt-2 text-xs flex items-center justify-center gap-1.5"
-                >
-                  <Key size={14} />
-                  <span>{t.registerStaff}</span>
-                </button>
-              </form>
-            )}
-
           </div>
-
-          {/* Bottom Footer Switcher */}
-          <div className="pt-3 mt-3 border-t border-slate-200/80 dark:border-slate-800 text-center">
-            {activeMode !== 'register_staff' ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMode('register_staff');
-                }}
-                className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-[#4873b8] transition font-bold underline"
-              >
-                🔒 {t.staffPortal}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMode('login');
-                }}
-                className="text-[11px] text-slate-600 dark:text-slate-400 hover:text-[#4873b8] transition font-bold underline"
-              >
-                👤 {t.returnToCustomer}
-              </button>
-            )}
-          </div>
-
         </div>
-
       </div>
     </div>
   );

@@ -660,15 +660,30 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" dir={isArabic ? 'rtl' : 'ltr'}>
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5">
             
-            <button
-              onClick={() => setSelectedHouse(null)}
-              className={`absolute top-4 ${isArabic ? 'left-4' : 'right-4'} p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800`}
-            >
-              <X size={20} />
-            </button>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                {lang === 'so' ? 'Faahfaahinta Guriga' : lang === 'ar' ? 'تفاصيل العقار' : 'Property Details'}
+              </h2>
+              <button
+                onClick={() => setSelectedHouse(null)}
+                className="p-2 bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 rounded-full hover:bg-rose-200 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
             {/* Photo & Title Header */}
             <div className="relative h-64 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <button
+                type="button"
+                onClick={() => setSelectedHouse(null)}
+                className={`absolute top-3 ${isArabic ? 'left-3' : 'right-3'} z-10 p-2 bg-slate-900/80 hover:bg-slate-950 text-white rounded-full transition shadow-lg flex items-center gap-1 px-3`}
+                title={lang === 'so' ? 'Xir daaqadda' : lang === 'ar' ? 'إغلاق' : 'Close'}
+              >
+                <X size={18} />
+                <span className="text-xs font-bold">{lang === 'so' ? 'Ka laabto' : lang === 'ar' ? 'إغلاق' : 'Close'}</span>
+              </button>
               <img
                 src={selectedHouse.imageUrl}
                 alt={selectedHouse.title}
@@ -782,6 +797,18 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
                   {t.submitReviewBtn}
                 </button>
               </form>
+            </div>
+
+            {/* Bottom Close / Return Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedHouse(null)}
+                className="w-full py-3 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 font-bold text-xs rounded-2xl transition flex items-center justify-center gap-2 border border-rose-200 dark:border-rose-800 shadow-sm"
+              >
+                <X size={18} />
+                <span>{lang === 'so' ? 'Xir Daaqadda (Ka laabto)' : lang === 'ar' ? 'إغلاق النافذة (العودة)' : 'Close Window (Go Back)'}</span>
+              </button>
             </div>
 
           </div>
