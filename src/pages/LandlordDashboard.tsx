@@ -66,6 +66,8 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
   const [newLat, setNewLat] = useState<number | null>(null);
   const [newLng, setNewLng] = useState<number | null>(null);
   const [newLocationSource, setNewLocationSource] = useState<'GPS_VERIFIED' | 'MAP_SELECTED' | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
   // Financial & Expense Modal State
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [expCategory, setExpCategory] = useState<'maintenance' | 'utilities' | 'taxes' | 'renovation' | 'management' | 'other'>('maintenance');
@@ -225,11 +227,12 @@ export const LandlordDashboard: React.FC<LandlordDashboardProps> = ({
   };
 
   const formatNumber = (num: number, decimals: number = 0) => {
+    const safeNum = (typeof num === 'number' && !isNaN(num) && isFinite(num)) ? num : 0;
     const options = decimals > 0 ? { minimumFractionDigits: decimals, maximumFractionDigits: decimals } : {};
     if (lang === 'ar') {
-      return new Intl.NumberFormat('ar-SA', options).format(num);
+      return new Intl.NumberFormat('ar-SA', options).format(safeNum);
     }
-    return new Intl.NumberFormat('en-US', options).format(num);
+    return new Intl.NumberFormat('en-US', options).format(safeNum);
   };
 
   const formatDate = (dateStr: string) => {

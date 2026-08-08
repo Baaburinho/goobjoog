@@ -62,7 +62,7 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
   // Smart Upgrade Modal & Algorithm State
   const [showSmartUpgradeModal, setShowSmartUpgradeModal] = useState(false);
   const [upgradeIdNumber, setUpgradeIdNumber] = useState('');
-  const [upgradePhone, setUpgradePhone] = useState(currentTenant.phone || '');
+  const [upgradePhone, setUpgradePhone] = useState(currentTenant?.phone || '');
   const [upgradePropCount, setUpgradePropCount] = useState('1');
 
   const handleSmartUpgradeSubmit = (e: React.FormEvent) => {
@@ -96,11 +96,12 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
 
   // Localized Format Helpers
   const formatNumber = (num: number, decimals: number = 0) => {
+    const safeNum = (typeof num === 'number' && !isNaN(num) && isFinite(num)) ? num : 0;
     const options = decimals > 0 ? { minimumFractionDigits: decimals, maximumFractionDigits: decimals } : {};
     if (lang === 'ar') {
-      return new Intl.NumberFormat('ar-SA', options).format(num);
+      return new Intl.NumberFormat('ar-SA', options).format(safeNum);
     }
-    return new Intl.NumberFormat('en-US', options).format(num);
+    return new Intl.NumberFormat('en-US', options).format(safeNum);
   };
 
   const formatDate = (dateStr: string) => {

@@ -72,10 +72,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Localized Format Helpers
   const formatNumber = (num: number) => {
+    const safeNum = (typeof num === 'number' && !isNaN(num) && isFinite(num)) ? num : 0;
     if (lang === 'ar') {
-      return new Intl.NumberFormat('ar-SA').format(num);
+      return new Intl.NumberFormat('ar-SA').format(safeNum);
     }
-    return new Intl.NumberFormat('en-US').format(num);
+    return new Intl.NumberFormat('en-US').format(safeNum);
   };
 
   const formatDate = (dateStr: string) => {

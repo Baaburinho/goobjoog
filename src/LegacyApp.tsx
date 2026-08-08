@@ -1118,11 +1118,12 @@ export default function LegacyApp() {
   // ==========================================
   // CALCULATED METRICS
   // ==========================================
-  const totalRevenue = transactions.filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + t.amountTotal, 0);
-  const systemCommission = transactions.filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + t.commissionAmount, 0);
-  const landlordPayouts = transactions.filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + t.payoutAmount, 0);
-  const outstandingPayments = applications.filter(a => a.status === 'approved').length * 350;
-  const activeTenancyRate = parseFloat(((houses.filter(h => h.status === 'rented').length / houses.length) * 100).toFixed(1)) || 0;
+  const totalRevenue = (transactions || []).filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + (t.amountTotal || 0), 0);
+  const systemCommission = (transactions || []).filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
+  const landlordPayouts = (transactions || []).filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + (t.payoutAmount || 0), 0);
+  const outstandingPayments = (applications || []).filter(a => a.status === 'approved').length * 350;
+  const totalHousesCount = (houses || []).length;
+  const activeTenancyRate = totalHousesCount > 0 ? parseFloat((((houses || []).filter(h => h.status === 'rented').length / totalHousesCount) * 100).toFixed(1)) : 0;
 
   // ==========================================
   // VIEW ROUTING ENFORCEMENT

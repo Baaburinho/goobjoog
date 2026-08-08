@@ -51,6 +51,17 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           <p className="text-xs text-slate-400 max-w-md">
             A temporary session state conflict occurred. Tap below to refresh your workspace.
           </p>
+          {this.state.error && (
+            <div className="p-3 bg-black/60 border border-rose-500/30 rounded-xl text-rose-300 text-[10px] font-mono max-w-md w-full overflow-x-auto text-left">
+              <span className="font-bold block mb-1">Error Diagnostic Info:</span>
+              <span>{this.state.error.toString()}</span>
+              {this.state.error.stack && (
+                <span className="block mt-1 text-[9px] text-slate-400 opacity-80 whitespace-pre-wrap">
+                  {this.state.error.stack.split('\n').slice(0, 5).join('\n')}
+                </span>
+              )}
+            </div>
+          )}
           <button
             onClick={this.handleReset}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg transition active:scale-95"
