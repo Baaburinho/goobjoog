@@ -7,6 +7,12 @@ export interface BiometricStatus {
   reason?: string;
 }
 
+export interface BiometricAuthResult {
+  success: boolean;
+  errorCode?: 'cancelled' | 'not_enrolled' | 'not_available' | 'passcode_not_set' | 'lockout' | 'system_error';
+  errorMessage?: string;
+}
+
 interface BiometricLockUser {
   id?: string;
   username?: string;
@@ -52,11 +58,11 @@ export const checkBiometricStatus = async (): Promise<BiometricStatus> => {
         hasEnrolledFingerprint: info.isAvailable,
         reason: info.reason,
       };
-    } catch (e) {
+    } catch (e: any) {
       return {
         isSupported: false,
         hasEnrolledFingerprint: false,
-        reason: 'Biometric check failed.',
+        reason: e?.message || 'Biometric check failed.',
       };
     }
   }
@@ -77,7 +83,7 @@ export const checkBiometricStatus = async (): Promise<BiometricStatus> => {
   return {
     isSupported: fallbackEnabled,
     hasEnrolledFingerprint: fallbackEnabled,
-    reason: fallbackEnabled ? undefined : 'No biometric authenticator is available.',
+    reason: fallbackEnabled ? undefined : 'No biometric authenticator is available on this browser.',
   };
 };
 
@@ -86,11 +92,17 @@ export const checkBiometricHardwareSupport = async (): Promise<boolean> => {
   return status.hasEnrolledFingerprint;
 };
 
-export const authenticateWithFingerprint = async (username: string): Promise<boolean> => {
+export const authenticateWithBiometrics = async (username: string): Promise<BiometricAuthResult> => {
   if (Capacitor.isNativePlatform()) {
     try {
       const info = await BiometricAuth.checkBiometry();
-      if (!info.isAvailable) return false;
+      if (!info.isAvailable) {
+        return {
+          success: false,
+          errorCode: 'not_available',
+          errorMessage: info.reason || 'Biometrics not available or not enrolled.'
+        };
+      }
 
       await BiometricAuth.authenticate({
         reason: `Unlock GoobJoog as @${username}`,
@@ -102,10 +114,22 @@ export const authenticateWithFingerprint = async (username: string): Promise<boo
         androidConfirmationRequired: false,
         androidBiometryStrength: AndroidBiometryStrength.weak,
       });
-      return true;
-    } catch (err) {
-      console.warn('Native BiometricAuth prompt error/cancelled:', err);
-      return false;
+      return { success: true };
+    } catch (err: any) {
+      const errMsg = (err?.message || '').toLowerCase();
+      let errorCode: BiometricAuthResult['errorCode'] = 'system_error';
+      if (errMsg.includes('cancel') || errMsg.includes('user_cancel') || errMsg.includes('user cancelled')) {
+        errorCode = 'cancelled';
+      } else if (errMsg.includes('lockout')) {
+        errorCode = 'lockout';
+      } else if (errMsg.includes('not enrolled')) {
+        errorCode = 'not_enrolled';
+      }
+      return {
+        success: false,
+        errorCode,
+        errorMessage: err?.message || 'Biometric authentication failed.'
+      };
     }
   }
 
@@ -130,17 +154,40 @@ export const authenticateWithFingerprint = async (username: string): Promise<boo
         publicKey,
       });
 
-      return !!credential;
+      if (credential) {
+        return { success: true };
+      }
+      return { success: false, errorCode: 'cancelled' };
     } catch (err: any) {
-      console.warn('WebAuthn prompt error/cancelled:', err?.message || err);
+      const errMsg = (err?.message || '').toLowerCase();
+      let errorCode: BiometricAuthResult['errorCode'] = 'system_error';
+      if (errMsg.includes('abort') || errMsg.includes('cancel') || errMsg.includes('notallowederror')) {
+        errorCode = 'cancelled';
+      }
+      return { success: false, errorCode, errorMessage: err?.message };
     }
   }
 
-  if (!canUseDevelopmentFallback()) return false;
+  if (!canUseDevelopmentFallback()) {
+    return {
+      success: false,
+      errorCode: 'not_available',
+      errorMessage: 'WebAuthn is not supported in this environment.'
+    };
+  }
 
   return new Promise((resolve) => {
     const confirmMsg = `[Biometric Fingerprint Sensor]\n\nScan your registered fingerprint sensor for user @${username}?`;
     const success = window.confirm(confirmMsg);
-    resolve(success);
+    if (success) {
+      resolve({ success: true });
+    } else {
+      resolve({ success: false, errorCode: 'cancelled', errorMessage: 'Scan cancelled by user.' });
+    }
   });
+};
+
+export const authenticateWithFingerprint = async (username: string): Promise<boolean> => {
+  const res = await authenticateWithBiometrics(username);
+  return res.success;
 };

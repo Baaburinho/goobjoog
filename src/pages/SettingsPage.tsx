@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { UserProfile } from '../domain/entities';
 import {
+  authenticateWithBiometrics,
   authenticateWithFingerprint,
   checkBiometricHardwareSupport,
   isBiometricLockEnabledForUser,
@@ -114,13 +115,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   });
 
   const handleBiometricToggle = async (enabled: boolean) => {
-    if (isBiometricSaving) return;
+    if (isCheckingBiometric || isBiometricSaving) return;
 
     if (enabled && !hasBiometricHardware) {
       showToast(
-        lang === 'so' ? 'Biometric lama heli karo. Fadlan ka shid farta ama wajiga Settings-ka taleefanka.' :
-        lang === 'ar' ? 'Biometric authentication is not available on this device.' :
-        'Biometric authentication is not available on this device.',
+        lang === 'so' ? 'Biometric lama heli karo. Fadlan ka diiwaangeli farta ama wajiga Settings-ka taleefankaaga.' :
+        lang === 'ar' ? 'البصمة غير متوفرة أو غير مفعلة على هذا الجهاز.' :
+        'Biometric authentication is not available or not enrolled on this device.',
         true
       );
       return;
@@ -130,29 +131,32 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
     try {
       if (enabled) {
-      // Test biometric verification before enabling
-      const success = await authenticateWithFingerprint(currentUser.username || currentUser.fullName);
-      if (!success) {
-        showToast(
-          lang === 'so' ? 'Xaqiijinta farta waa la diiday ama waa la joojiyay.' :
-          lang === 'ar' ? 'فشل التحقق من البصمة.' :
-          'Biometric verification failed or cancelled.',
-          true
-        );
-        return;
+        // Trigger official system biometric prompt before enabling
+        const result = await authenticateWithBiometrics(currentUser.username || currentUser.fullName);
+        if (!result.success) {
+          let errorMsg = lang === 'so' ? 'Xaqiijinta farta waa la diiday ama waa la joojiyay.' : 'Biometric verification failed or cancelled.';
+          if (result.errorCode === 'cancelled') {
+            errorMsg = lang === 'so' ? 'Waad joojisay scan-ka farta.' : 'Biometric scan was cancelled.';
+          } else if (result.errorCode === 'lockout') {
+            errorMsg = lang === 'so' ? 'Faraha waa la xanibay isku dayo badan dartiis. Fadlan isticmaal furahaaga.' : 'Biometrics temporarily locked out due to multiple attempts.';
+          } else if (result.errorCode === 'not_enrolled') {
+            errorMsg = lang === 'so' ? 'Farta laguma diiwaangelin taleefankaaga. Ka shid Settings-ka taleefanka.' : 'No biometrics enrolled on device.';
+          }
+          showToast(errorMsg, true);
+          return;
+        }
       }
-    }
 
-    setBiometricLockEnabled(enabled);
-    setBiometricLockEnabledForUser(currentUser, enabled);
-    if (addAuditLog) {
-      addAuditLog('BIOMETRIC_LOCK_TOGGLE', `User set biometric lock to ${enabled ? 'ENABLED' : 'DISABLED'}`);
-    }
-    showToast(
-      enabled
-        ? (lang === 'so' ? 'Qufida farta (Biometric) waa la daaray!' : lang === 'ar' ? 'تم تفعيل قفل التطبيق بالبصمة!' : 'Biometric App Lock enabled!')
-        : (lang === 'so' ? 'Qufida farta waa la demiyay' : lang === 'ar' ? 'تم إيقاف قفل التطبيق بالبصمة' : 'Biometric App Lock disabled')
-    );
+      setBiometricLockEnabled(enabled);
+      setBiometricLockEnabledForUser(currentUser, enabled);
+      if (addAuditLog) {
+        addAuditLog('BIOMETRIC_LOCK_TOGGLE', `User set biometric lock to ${enabled ? 'ENABLED' : 'DISABLED'}`);
+      }
+      showToast(
+        enabled
+          ? (lang === 'so' ? 'Qufida farta (Biometric) waa la shiday!' : lang === 'ar' ? 'تم تفعيل قفل التطبيق بالبصمة!' : 'Biometric App Lock enabled!')
+          : (lang === 'so' ? 'Qufida farta waa la demiyay' : lang === 'ar' ? 'تم إيقاف قفل التطبيق بالبصمة' : 'Biometric App Lock disabled')
+      );
     } finally {
       setIsBiometricSaving(false);
     }
