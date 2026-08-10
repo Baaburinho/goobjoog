@@ -293,13 +293,19 @@ export const StaticPageModal: React.FC<StaticPageModalProps> = ({
   return (
     <div className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 flex flex-col animate-fadeIn" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* HEADER */}
-      <div className="flex items-center gap-3 p-4 border-b border-slate-200 dark:border-slate-800 shadow-sm sticky top-0 z-10 bg-white dark:bg-slate-950">
-        <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition">
-          <ArrowLeft size={20} className={isArabic ? 'rotate-180' : ''} />
+      <div className="flex items-center gap-3 pt-12 sm:pt-4 pb-3.5 px-4 border-b border-slate-200 dark:border-slate-800 shadow-sm sticky top-0 z-10 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md">
+        <button 
+          onClick={onClose} 
+          className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 shadow-sm hover:scale-105 active:scale-95 transition"
+          aria-label="Back"
+        >
+          <ArrowLeft size={19} className={isArabic ? 'rotate-180' : ''} />
         </button>
-        <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
-          {title}
-        </h2>
+        <div>
+          <h2 className="text-base font-black text-slate-900 dark:text-slate-100 tracking-tight">
+            {title}
+          </h2>
+        </div>
       </div>
 
       {/* CONTENT */}

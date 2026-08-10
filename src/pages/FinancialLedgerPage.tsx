@@ -93,20 +93,19 @@ export const FinancialLedgerPage: React.FC<FinancialLedgerPageProps> = ({
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col animate-fade-in pb-16" dir={isArabic ? 'rtl' : 'ltr'}>
       
       {/* PAGE HEADER */}
-      <div className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm pt-10 sm:pt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToDashboard}
-              className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1 text-xs font-bold"
+              className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 shadow-sm hover:scale-105 active:scale-95 transition"
+              aria-label="Back"
             >
-              <ArrowLeft size={18} className={isArabic ? 'rotate-180' : ''} />
-              <span className="hidden sm:inline">{lang === 'so' ? 'Dib Ugu Laabto Workspace' : 'Back to Workspace'}</span>
+              <ArrowLeft size={19} className={isArabic ? 'rotate-180' : ''} />
             </button>
-            <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
             <div>
-              <h1 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                📊 {lang === 'so' ? 'Xisaabaadka & Dakhliga (Financial Ledger)' : 'Financial Accounting & Net Profit'}
+              <h1 className="text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                📊 {lang === 'so' ? 'Xisaabaadka & Dakhliga (Ledger)' : 'Financial Accounting & Net Profit'}
               </h1>
             </div>
           </div>

@@ -279,27 +279,27 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       )}
 
       {/* HEADER */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm pt-10 sm:pt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 shadow-sm hover:scale-105 active:scale-95 transition"
               aria-label={t.back}
             >
-              <ArrowLeft size={20} className={isArabic ? 'rotate-180' : ''} />
+              <ArrowLeft size={19} className={isArabic ? 'rotate-180' : ''} />
             </button>
             <div>
-              <h1 className="text-lg font-bold flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Settings size={18} className="text-blue-600" />
-                {t.settingsTitle}
+                <span>{t.settingsTitle}</span>
               </h1>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition active:scale-95"
           >
             {t.gotIt}
           </button>
