@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Bell, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bell, Trash2, CheckCircle2, Calendar, Home } from 'lucide-react';
 import { translations } from '../../lib/translations';
 
 interface NotificationsModalProps {
@@ -14,21 +14,21 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
   const [notifications, setNotifications] = useState(() => {
     if (lang === 'so') {
       return [
-        { id: 1, title: 'Lacag Bixintii Waa La Oggolaaday', message: 'Lacagtii kirada ee bishan $350 si toos ah ayaa loo xaqiijiyey.', time: '10 daqiiqo ka hor', read: false },
-        { id: 2, title: 'Guri Cusub oo Diyaar ah', message: 'Guri 3 qol ah oo ku yaala Hodan ayaa hadda la soo galiyey.', time: '2 saac ka hor', read: false },
-        { id: 3, title: 'Codsigaagii Waa La Aqbalay', message: 'Mulkiilaha guriga Hodan wuxuu aqbalay codsigaaga kireysiga!', time: '1 maalin ka hor', read: true }
+        { id: 1, title: '📅 Ballantii Booqashada Waa La Xaqiijiyey', message: 'Mulkiilaha guriga Isha Baydhabo wuxuu xaqiijiyey ballantaada booqashada guriga.', time: '5 daqiiqo ka hor', read: false, type: 'tour' },
+        { id: 2, title: '🏡 Guri Cusub oo Baydhabo ah', message: 'Villa casri ah oo 3 qol ah ayaa hadda lagu daray magaaladaada.', time: '1 saac ka hor', read: false, type: 'listing' },
+        { id: 3, title: '📄 Codsigaagii Kireysiga Waa La Aqbalay', message: 'Mulkiilaha wuxuu si guul leh u oggolaaday codsigaaga kireysiga!', time: '1 maalin ka hor', read: true, type: 'application' }
       ];
     } else if (lang === 'ar') {
       return [
-        { id: 1, title: 'تمت الموافقة على سداد الإيجار', message: 'تم استلام وتأكيد سداد الإيجار الشهري بمبلغ 350$ بنجاح.', time: 'منذ ١٠ دقائق', read: false },
-        { id: 2, title: 'عقار جديد متاح للإيجار', message: 'تم إدراج فيلا راقية ٣ غرف نوم في حي هودان بمقديشو.', time: 'منذ ساعتين', read: false },
-        { id: 3, title: 'تم قبول طلب الاستئجار', message: 'وافق مالك العقار على طلب استئجار الشقة السكنية بنجاح!', time: 'منذ يوم واحد', read: true }
+        { id: 1, title: '📅 تم تأكيد موعد المعاينة', message: 'قام مالك العقار في بيدوا بتأكيد موعد زيارة ومعاينة المنزل بنجاح.', time: 'منذ ٥ دقائق', read: false, type: 'tour' },
+        { id: 2, title: '🏡 عقار جديد متاح في مدينتك', message: 'تم إدراج فيلا راقية ٣ غرف نوم في منطقتك.', time: 'منذ ساعة', read: false, type: 'listing' },
+        { id: 3, title: '📄 تم قبول طلب الاستئجار', message: 'وافق مالك العقار على طلب استئجار العقار بنجاح!', time: 'منذ يوم واحد', read: true, type: 'application' }
       ];
     } else {
       return [
-        { id: 1, title: 'Payment Approved', message: 'Your monthly rent payment of $350 has been approved.', time: '10 mins ago', read: false },
-        { id: 2, title: 'New Property Available', message: 'A new 3-bedroom villa in Hodan is now available.', time: '2 hours ago', read: false },
-        { id: 3, title: 'Application Accepted', message: 'Your application for the Hodan apartment was accepted!', time: '1 day ago', read: true }
+        { id: 1, title: '📅 Viewing Tour Confirmed', message: 'The landlord confirmed your house viewing tour appointment.', time: '5 mins ago', read: false, type: 'tour' },
+        { id: 2, title: '🏡 New Property in Your City', message: 'A modern 3-bedroom villa was just listed in your city.', time: '1 hour ago', read: false, type: 'listing' },
+        { id: 3, title: '📄 Application Approved', message: 'Your rental application for the property was approved!', time: '1 day ago', read: true, type: 'application' }
       ];
     }
   });

@@ -13,6 +13,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { GoobJoogAI } from './components/GoobJoogAI';
 import { AppLockScreen } from './components/AppLockScreen';
 import { initNotificationChannels, sendTourNotification, sendApplicationNotification } from './shared/utils/notificationsHelper';
+import { isBiometricLockEnabledForUser } from './shared/utils/biometrics';
 
 // ==========================================
 // SEED USERS & SYSTEM STATE DATA
@@ -249,35 +250,29 @@ const INITIAL_AUDITS: AuditLog[] = [
   { id: 'ad2', timestamp: '2026-07-12T18:45:00Z', action: 'USER_REGISTER', details: 'Default profiles registered.', ipAddress: '197.220.35.4' }
 ];
 
+const readSavedActiveUser = (): UserProfile | null => {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const saved = localStorage.getItem('goobjoog_active_user');
+    return saved ? JSON.parse(saved) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
 export default function LegacyApp() {
   // Saved profile and biometric lock state (Strictly based on actual logged in user)
-  const [savedUser, setSavedUser] = useState<UserProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('goobjoog_active_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [savedUser, setSavedUser] = useState<UserProfile | null>(() => readSavedActiveUser());
 
   const [isLocked, setIsLocked] = useState<boolean>(() => {
-    const lockEnabled = localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
-    const saved = localStorage.getItem('goobjoog_active_user');
-    return lockEnabled && !!saved;
+    const user = readSavedActiveUser();
+    return !!user && isBiometricLockEnabledForUser(user);
   });
 
   // Authentication & Session State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    try {
-      const lockEnabled = localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
-      const saved = localStorage.getItem('goobjoog_active_user');
-      if (saved && !lockEnabled) {
-        return JSON.parse(saved);
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
+    const user = readSavedActiveUser();
+    return user && !isBiometricLockEnabledForUser(user) ? user : null;
   });
 
   const [lang, setLangState] = useState<'en' | 'so' | 'ar'>(() => {
@@ -503,6 +498,7 @@ export default function LegacyApp() {
     const loadLocalBackup = () => {
       const localUsers = localStorage.getItem('goobjoog_users');
       const localHouses = localStorage.getItem('goobjoog_houses');
+      const localApps = localStorage.getItem('goobjoog_apps');
       const localTours = localStorage.getItem('goobjoog_tours');
       const localComplaints = localStorage.getItem('goobjoog_complaints');
       const localAudits = localStorage.getItem('goobjoog_audits');
@@ -617,9 +613,6 @@ export default function LegacyApp() {
     setSavedUser(user);
     setIsLocked(false);
     localStorage.setItem('goobjoog_active_user', JSON.stringify(user));
-    if (localStorage.getItem('goobjoog_biometric_lock_enabled') === null) {
-      localStorage.setItem('goobjoog_biometric_lock_enabled', 'true');
-    }
     const userRoles = user.roles || [];
     if (userRoles.includes('administrator') || userRoles.includes('admin')) {
       setActiveLayout('administrator');
@@ -1124,7 +1117,10 @@ export default function LegacyApp() {
             setLang={setLang}
             onClose={() => setIsSettingsOpen(false)}
             onUpdateUser={(updated) => {
-              setCurrentUser(prev => prev ? { ...prev, ...updated } : null);
+              const updatedUser = { ...currentUser, ...updated };
+              setCurrentUser(updatedUser);
+              setSavedUser(updatedUser);
+              localStorage.setItem('goobjoog_active_user', JSON.stringify(updatedUser));
               setUsers(prev => prev.map(u => u.id === currentUser.id ? { ...u, ...updated } : u));
             }}
             addAuditLog={addAuditLog}

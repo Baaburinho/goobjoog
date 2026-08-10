@@ -47,5 +47,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>GoobJoog uses Face ID to unlock your account when biometric lock is enabled.</string>
 </dict>
 </plist>

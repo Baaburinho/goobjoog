@@ -568,6 +568,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           }
           pageType={activeMenuModal}
           lang={lang}
+          currentUser={currentUser}
         />
       )}
 

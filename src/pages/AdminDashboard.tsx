@@ -434,6 +434,123 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         )}
       </div>
 
+      {/* LIVE CUSTOMER SUPPORT & TICKETS HELPDESK */}
+      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <span>💬</span>
+              <span>{lang === 'so' ? 'Caawinta Tooska ah & Fariimaha Macaamiisha (Live Support Helpdesk)' : 'Customer Live Support Helpdesk'}</span>
+            </h3>
+            <p className="text-xs text-slate-400">
+              {lang === 'so' ? 'Halkan ka arag fariimaha tooska ah ee ay macaamiishu ka soo direen qaybta Caawinta (Help Center) oo toos uga jawaab.' :
+               'Review live support tickets and customer questions sent from the Help Center.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const tickets = JSON.parse(localStorage.getItem('goobjoog_support_tickets') || '[]');
+              alert(lang === 'so' ? `Waxaa jira ${tickets.length} fariimo taageero ah.` : `${tickets.length} support inquiries in system.`);
+            }}
+            className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 font-bold text-xs rounded-xl border border-blue-200 dark:border-blue-800 flex items-center gap-1"
+          >
+            <MessageSquare size={14} />
+            <span>{lang === 'so' ? 'Dib u Cusbooneysii' : 'Refresh'}</span>
+          </button>
+        </div>
+
+        {(() => {
+          let supportTickets = [];
+          try {
+            supportTickets = JSON.parse(localStorage.getItem('goobjoog_support_tickets') || '[]');
+          } catch (e) {
+            supportTickets = [];
+          }
+
+          if (supportTickets.length === 0) {
+            return (
+              <div className="text-center py-8 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-xs text-slate-400 space-y-1">
+                <span className="text-xl block mb-1">🎧</span>
+                <p className="font-bold text-slate-600 dark:text-slate-300">
+                  {lang === 'so' ? 'Weli ma jiraan fariimo cusub oo ka yimid macaamiisha.' : 'No active customer support tickets.'}
+                </p>
+                <span className="text-[11px] text-slate-400">
+                  {lang === 'so' ? 'Fariimaha ay macaamiishu ka soo diraan Qeybta Caawinta halkan ayay toos ugu soo dhacayaan.' : 'Customer queries from the Help Center will appear here in real-time.'}
+                </span>
+              </div>
+            );
+          }
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {supportTickets.map((st, idx) => (
+                <div key={st.id || idx} className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <User size={14} className="text-blue-600" />
+                        <span>{st.userName}</span>
+                      </h4>
+                      <span className="text-[10px] text-slate-400 font-mono">📱 {st.userPhone} • 🕒 {st.time}</span>
+                    </div>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
+                      st.status === 'resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                    }`}>
+                      {(st.status || 'OPEN').toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                    "{st.message}"
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const reply = prompt(lang === 'so' ? `U dir jawaab ${st.userName}:` : `Send reply to ${st.userName}:`);
+                        if (reply) {
+                          const chat = JSON.parse(localStorage.getItem('goobjoog_support_chat') || '[]');
+                          chat.push({
+                            id: `msg_admin_${Date.now()}`,
+                            sender: 'admin',
+                            senderName: 'Admin: ' + (currentUser?.fullName || 'GoobJoog Support'),
+                            text: reply,
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          });
+                          localStorage.setItem('goobjoog_support_chat', JSON.stringify(chat));
+
+                          // Mark resolved
+                          st.status = 'resolved';
+                          localStorage.setItem('goobjoog_support_tickets', JSON.stringify(supportTickets));
+                          alert(lang === 'so' ? 'Jawaabtaadii toos ayaa loogu diray macaamiilka!' : 'Reply sent directly to customer live chat!');
+                        }
+                      }}
+                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition active:scale-95 text-center"
+                    >
+                      💬 {lang === 'so' ? 'Ka Jawaab (Reply)' : 'Reply'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const filtered = supportTickets.filter((_, i) => i !== idx);
+                        localStorage.setItem('goobjoog_support_tickets', JSON.stringify(filtered));
+                        alert(lang === 'so' ? 'Tikidhka waa la xalliyay oo waa la saaray.' : 'Ticket resolved.');
+                      }}
+                      className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition active:scale-95"
+                    >
+                      ✓ {lang === 'so' ? 'Xalliyey' : 'Resolve'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </div>
+
       {/* SYSTEM AUDIT LOGS TABLE */}
       <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">

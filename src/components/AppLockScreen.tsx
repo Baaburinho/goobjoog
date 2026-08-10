@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Fingerprint, Lock, ShieldCheck, ArrowRight, User, KeyRound, LogOut, CheckCircle2 } from 'lucide-react';
 import type { UserProfile } from '../domain/entities';
 import { authenticateWithFingerprint } from '../shared/utils/biometrics';
@@ -22,20 +22,14 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [successAnim, setSuccessAnim] = useState(false);
+  const hasAutoPrompted = useRef(false);
 
   const t = translations[lang] || translations.en;
   const isArabic = lang === 'ar';
 
-  // Trigger biometric prompt automatically on screen load
-  useEffect(() => {
-    let timer = setTimeout(() => {
-      handleBiometricUnlock();
-    }, 400);
+  const handleBiometricUnlock = useCallback(async () => {
+    if (isAuthenticating || successAnim) return;
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleBiometricUnlock = async () => {
     setIsAuthenticating(true);
     setAuthError(null);
 
@@ -66,7 +60,19 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
     } finally {
       setIsAuthenticating(false);
     }
-  };
+  }, [isAuthenticating, lang, onUnlockSuccess, savedUser, successAnim]);
+
+  // Trigger biometric prompt automatically on screen load
+  useEffect(() => {
+    if (hasAutoPrompted.current) return;
+    hasAutoPrompted.current = true;
+
+    const timer = setTimeout(() => {
+      handleBiometricUnlock();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [handleBiometricUnlock]);
 
   return (
     <div 

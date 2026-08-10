@@ -7,7 +7,12 @@ import {
   Camera, Upload, Trash2
 } from 'lucide-react';
 import type { UserProfile } from '../domain/entities';
-import { checkBiometricHardwareSupport, authenticateWithFingerprint } from '../shared/utils/biometrics';
+import {
+  authenticateWithFingerprint,
+  checkBiometricHardwareSupport,
+  isBiometricLockEnabledForUser,
+  setBiometricLockEnabledForUser,
+} from '../shared/utils/biometrics';
 import { translations } from '../lib/translations';
 
 interface SettingsPageProps {
@@ -100,14 +105,31 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Security Toggles
-  const [hasBiometricHardware, setHasBiometricHardware] = useState(true);
+  const [hasBiometricHardware, setHasBiometricHardware] = useState(false);
+  const [isCheckingBiometric, setIsCheckingBiometric] = useState(true);
+  const [isBiometricSaving, setIsBiometricSaving] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
   const [biometricLockEnabled, setBiometricLockEnabled] = useState(() => {
-    return localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
+    return isBiometricLockEnabledForUser(currentUser);
   });
 
   const handleBiometricToggle = async (enabled: boolean) => {
-    if (enabled) {
+    if (isBiometricSaving) return;
+
+    if (enabled && !hasBiometricHardware) {
+      showToast(
+        lang === 'so' ? 'Biometric lama heli karo. Fadlan ka shid farta ama wajiga Settings-ka taleefanka.' :
+        lang === 'ar' ? 'Biometric authentication is not available on this device.' :
+        'Biometric authentication is not available on this device.',
+        true
+      );
+      return;
+    }
+
+    setIsBiometricSaving(true);
+
+    try {
+      if (enabled) {
       // Test biometric verification before enabling
       const success = await authenticateWithFingerprint(currentUser.username || currentUser.fullName);
       if (!success) {
@@ -122,7 +144,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     }
 
     setBiometricLockEnabled(enabled);
-    localStorage.setItem('goobjoog_biometric_lock_enabled', enabled ? 'true' : 'false');
+    setBiometricLockEnabledForUser(currentUser, enabled);
     if (addAuditLog) {
       addAuditLog('BIOMETRIC_LOCK_TOGGLE', `User set biometric lock to ${enabled ? 'ENABLED' : 'DISABLED'}`);
     }
@@ -131,13 +153,38 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         ? (lang === 'so' ? 'Qufida farta (Biometric) waa la daaray!' : lang === 'ar' ? 'تم تفعيل قفل التطبيق بالبصمة!' : 'Biometric App Lock enabled!')
         : (lang === 'so' ? 'Qufida farta waa la demiyay' : lang === 'ar' ? 'تم إيقاف قفل التطبيق بالبصمة' : 'Biometric App Lock disabled')
     );
+    } finally {
+      setIsBiometricSaving(false);
+    }
   };
 
   useEffect(() => {
-    checkBiometricHardwareSupport().then(supported => {
-      setHasBiometricHardware(supported || true);
-    });
-  }, []);
+    let isMounted = true;
+
+    setBiometricLockEnabled(isBiometricLockEnabledForUser(currentUser));
+    setIsCheckingBiometric(true);
+
+    checkBiometricHardwareSupport()
+      .then(supported => {
+        if (isMounted) {
+          setHasBiometricHardware(supported);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setHasBiometricHardware(false);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsCheckingBiometric(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser]);
 
   // Notification Toggles
   const [rentReminders, setRentReminders] = useState(true);
@@ -660,16 +707,32 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     </div>
 
                     {/* WhatsApp / iOS Style Toggle Switch */}
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+                    <label className={`relative inline-flex items-center shrink-0 mt-1 ${
+                      isCheckingBiometric || isBiometricSaving || (!hasBiometricHardware && !biometricLockEnabled)
+                        ? 'cursor-not-allowed opacity-60'
+                        : 'cursor-pointer'
+                    }`}>
                       <input
                         type="checkbox"
                         checked={biometricLockEnabled}
+                        disabled={isCheckingBiometric || isBiometricSaving || (!hasBiometricHardware && !biometricLockEnabled)}
                         onChange={(e) => handleBiometricToggle(e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
+                  <p className={`text-[10px] font-semibold ${
+                    hasBiometricHardware
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {isCheckingBiometric
+                      ? (lang === 'so' ? 'Waxaan hubinayaa biometric-ka qalabka...' : lang === 'ar' ? 'Checking biometric support...' : 'Checking biometric support...')
+                      : hasBiometricHardware
+                      ? (lang === 'so' ? 'Biometric-ka qalabkan waa diyaar.' : lang === 'ar' ? 'Biometric authentication is ready on this device.' : 'Biometric authentication is ready on this device.')
+                      : (lang === 'so' ? 'Biometric lama heli karo. Ka diiwaangeli farta ama wajiga Settings-ka taleefanka, kadib ku soo noqo GoobJoog.' : lang === 'ar' ? 'Biometric authentication is not available on this device.' : 'Biometric authentication is not available on this device.')}
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
