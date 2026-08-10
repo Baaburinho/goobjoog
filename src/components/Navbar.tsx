@@ -97,42 +97,37 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Navigation Role Tabs (Strictly localized) */}
             {setActiveLayout && currentUser && (
               <div className={`hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 ${isArabic ? 'mr-3' : 'ml-3'}`}>
-                {((currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) && (
-                  <button
-                    onClick={() => setActiveLayout('administrator')}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
-                      activeLayout === 'administrator' 
-                        ? 'bg-rose-600 text-white shadow-sm' 
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <Shield size={13} />
-                    <span>{t.navAdmin}</span>
-                  </button>
-                )}
+                {((currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) ? (
+                  <div className="px-3 py-1 text-xs font-black rounded-lg bg-rose-600 text-white shadow-sm flex items-center gap-1.5">
+                    <Shield size={14} />
+                    <span>{t.navAdmin} (Executive)</span>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setActiveLayout('tenant')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+                        activeLayout === 'tenant' 
+                          ? 'bg-blue-600 text-white shadow-sm' 
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <span>🏠 {t.navHouses}</span>
+                    </button>
 
-                <button
-                  onClick={() => setActiveLayout('tenant')}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
-                    activeLayout === 'tenant' 
-                      ? 'bg-blue-600 text-white shadow-sm' 
-                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <span>🏠 {t.navHouses}</span>
-                </button>
-
-                {((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved' || (currentUser?.roles || []).includes('administrator') || (currentUser?.roles || []).includes('admin' as any)) && (
-                  <button
-                    onClick={() => setActiveLayout('homeowner')}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
-                      activeLayout === 'homeowner' 
-                        ? 'bg-blue-600 text-white shadow-sm' 
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <span>🏡 {t.navLandlord}</span>
-                  </button>
+                    {((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved') && (
+                      <button
+                        onClick={() => setActiveLayout('homeowner')}
+                        className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+                          activeLayout === 'homeowner' 
+                            ? 'bg-blue-600 text-white shadow-sm' 
+                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <span>🏡 {t.navLandlord}</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -369,30 +364,38 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                   {setActiveLayout && (
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => {
-                          setActiveLayout('tenant');
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${
-                          activeLayout === 'tenant' ? 'bg-white text-blue-700 font-extrabold shadow' : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        🏠 {t.tenant}
-                      </button>
+                      {((currentUser.roles || []).includes('administrator') || (currentUser.roles || []).includes('admin' as any)) ? (
+                        <span className="px-2.5 py-1 text-[10px] font-black rounded-lg bg-rose-600 text-white shadow">
+                          🛡️ {t.navAdmin}
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              setActiveLayout('tenant');
+                              setMobileMenuOpen(false);
+                            }}
+                            className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${
+                              activeLayout === 'tenant' ? 'bg-white text-blue-700 font-extrabold shadow' : 'bg-white/10 text-white hover:bg-white/20'
+                            }`}
+                          >
+                            🏠 {t.tenant}
+                          </button>
 
-                      {((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved') && (
-                        <button
-                          onClick={() => {
-                            setActiveLayout('homeowner');
-                            setMobileMenuOpen(false);
-                          }}
-                          className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${
-                            activeLayout === 'homeowner' ? 'bg-white text-blue-700 font-extrabold shadow' : 'bg-white/10 text-white hover:bg-white/20'
-                          }`}
-                        >
-                          🏡 {t.landlord}
-                        </button>
+                          {((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved') && (
+                            <button
+                              onClick={() => {
+                                setActiveLayout('homeowner');
+                                setMobileMenuOpen(false);
+                              }}
+                              className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${
+                                activeLayout === 'homeowner' ? 'bg-white text-blue-700 font-extrabold shadow' : 'bg-white/10 text-white hover:bg-white/20'
+                              }`}
+                            >
+                              🏡 {t.landlord}
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -401,8 +404,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Navigation Drawer Links */}
               <div className="flex flex-col gap-1">
-                {/* Financial Accounting Page Link for Landlords / Admins */}
-                {setActiveLayout && ((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved' || (currentUser?.roles || []).includes('administrator')) && (
+                {/* Financial Accounting Page Link for Landlords Only */}
+                {setActiveLayout && !((currentUser?.roles || []).includes('administrator')) && ((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved') && (
                   <button 
                     onClick={() => { 
                       setActiveLayout('financial_ledger'); 
