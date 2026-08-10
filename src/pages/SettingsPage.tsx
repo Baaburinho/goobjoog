@@ -7,7 +7,7 @@ import {
   Camera, Upload, Trash2
 } from 'lucide-react';
 import type { UserProfile } from '../domain/entities';
-import { checkBiometricHardwareSupport } from '../shared/utils/biometrics';
+import { checkBiometricHardwareSupport, authenticateWithFingerprint } from '../shared/utils/biometrics';
 import { translations } from '../lib/translations';
 
 interface SettingsPageProps {

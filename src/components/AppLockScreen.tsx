@@ -76,8 +76,8 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
       {/* Top Header */}
       <div className="w-full max-w-sm flex items-center justify-between pt-6">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-2xl bg-blue-600/90 text-white flex items-center justify-center font-black text-lg shadow-lg">
-            🏠
+          <div className="w-10 h-10 rounded-2xl bg-blue-600/90 text-white flex items-center justify-center font-black text-lg shadow-lg overflow-hidden p-0.5 border border-blue-400/40">
+            <img src="/goobjoog_logo.png" alt="GoobJoog Logo" className="w-full h-full object-cover rounded-xl" />
           </div>
           <span className="text-xl font-black tracking-tight text-white">GoobJoog</span>
         </div>
