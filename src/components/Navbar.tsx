@@ -86,8 +86,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => onGoHome && onGoHome()} 
               className="flex items-center gap-2 text-left focus:outline-none cursor-pointer group"
             >
-              <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-md tracking-tighter group-hover:scale-105 transition overflow-hidden p-0.5 border border-blue-400/30">
-                <img src="/goobjoog_logo.png" alt="GoobJoog Logo" className="w-full h-full object-cover rounded-xl" />
+              <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-md tracking-tighter group-hover:scale-105 transition">
+                🏠
               </div>
               <span className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight flex items-center gap-1.5 select-none">
                 <span>{t.appName}</span>
