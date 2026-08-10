@@ -160,7 +160,7 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
           <span>{savedUser.fullName} (@{savedUser.username})</span>
         </div>
 
-        {/* Bottom Actions Row matching "Use Password" and "Log Out" */}
+        {/* Bottom Actions Row matching "Use PIN" and "Log Out" */}
         <div className="w-full flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
           <button
             type="button"
@@ -168,7 +168,7 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
             className="text-xs font-black text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:underline transition active:scale-95 flex items-center gap-1"
           >
             <KeyRound size={13} />
-            <span>{lang === 'so' ? 'Geli Password' : 'Use Password'}</span>
+            <span>{lang === 'so' ? 'Isticmaal PIN' : 'Use PIN'}</span>
           </button>
 
           <button
