@@ -23,7 +23,17 @@ dist-ssr
 *.sln
 *.sw?
 
+# Android & Gradle Build Folders
+android/**/build/
+android/**/build_out/
+android/**/build_fresh/
+android/**/build_clean/
+android/.gradle/
+android/.kotlin/
+.gradle/
+
 # Binaries and large media files
 *.apk
+*.ipa
 *.mp4
 *.zip
