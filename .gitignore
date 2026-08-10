@@ -32,8 +32,8 @@ android/.gradle/
 android/.kotlin/
 .gradle/
 
-# Binaries and large media files
-*.apk
+# Binaries - Exclude intermediate build APKs, but INCLUDE public web download APK
 *.ipa
-*.mp4
 *.zip
+android/**/*.apk
+!public/GoobJoog-Android.apk
