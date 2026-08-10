@@ -64,17 +64,6 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
     }
   }, [isAuthenticating, lang, onUnlockSuccess, savedUser, successAnim]);
 
-  // Automatically trigger native prompt on mount
-  useEffect(() => {
-    if (hasAutoPrompted.current) return;
-    hasAutoPrompted.current = true;
-
-    const timer = setTimeout(() => {
-      handleBiometricUnlock();
-    }, 450);
-
-    return () => clearTimeout(timer);
-  }, [handleBiometricUnlock]);
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
