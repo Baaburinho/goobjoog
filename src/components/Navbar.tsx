@@ -49,6 +49,20 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
+  const handleDownloadAndroidApk = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const link = document.createElement('a');
+    link.href = '/GoobJoog-Android.apk';
+    link.setAttribute('download', 'GoobJoog-Android.apk');
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      if (document.body.contains(link)) {
+        document.body.removeChild(link);
+      }
+    }, 200);
+  };
+
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'administrator':
@@ -141,9 +155,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <a
                   href="/GoobJoog-Android.apk"
                   download="GoobJoog-Android.apk"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95 touch-target"
+                  onClick={handleDownloadAndroidApk}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95 touch-target cursor-pointer"
                   title={t.androidApp}
                 >
                   <Download size={14} />
@@ -295,9 +308,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <a
                       href="/GoobJoog-Android.apk"
                       download="GoobJoog-Android.apk"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95"
+                      onClick={handleDownloadAndroidApk}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95 cursor-pointer"
                     >
                       <Download size={14} />
                       {t.androidApp}
