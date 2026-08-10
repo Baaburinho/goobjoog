@@ -318,6 +318,20 @@ export default function LegacyApp() {
     // Push Native Android/iOS Local Notification
     sendTourNotification(newTour.tenantName, newTour.houseTitle, newTour.tourDate);
 
+    // Also persist in-app notification
+    try {
+      const existing = JSON.parse(localStorage.getItem('goobjoog_inapp_notifications') || '[]');
+      existing.unshift({
+        id: `notif_${Date.now()}`,
+        title: '📅 Ballan Booqasho Guri Cusub',
+        message: `${newTour.tenantName} wuxuu koodsaday booqashada guriga: "${newTour.houseTitle}" taariikhda ${newTour.tourDate}`,
+        time: 'Hadda (Just now)',
+        read: false,
+        type: 'tour'
+      });
+      localStorage.setItem('goobjoog_inapp_notifications', JSON.stringify(existing));
+    } catch {}
+
     if (isSupabaseConfigured) {
       try {
         await supabase.from('house_tours').insert([{

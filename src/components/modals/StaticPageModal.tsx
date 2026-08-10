@@ -63,6 +63,19 @@ export const StaticPageModal: React.FC<StaticPageModalProps> = ({
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('goobjoog_support_chat') || '[]');
+        if (saved && saved.length > 0) {
+          setMessages(saved);
+        }
+      } catch {}
+    };
+    window.addEventListener('goobjoog_chat_sync', handleSync);
+    return () => window.removeEventListener('goobjoog_chat_sync', handleSync);
+  }, []);
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMsg.trim()) return;
@@ -92,6 +105,7 @@ export const StaticPageModal: React.FC<StaticPageModalProps> = ({
         status: 'open'
       });
       localStorage.setItem('goobjoog_support_tickets', JSON.stringify(tickets));
+      window.dispatchEvent(new Event('goobjoog_chat_sync'));
     } catch (e) {}
 
     // Simulated instant agent reply

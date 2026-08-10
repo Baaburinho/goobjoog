@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Bell, Trash2, CheckCircle2, Calendar, Home } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Bell, Trash2, CheckCircle2, Calendar, Home, FileText } from 'lucide-react';
 import { translations } from '../../lib/translations';
 
 interface NotificationsModalProps {
@@ -12,30 +12,32 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
   const isArabic = lang === 'ar';
 
   const [notifications, setNotifications] = useState(() => {
-    if (lang === 'so') {
-      return [
-        { id: 1, title: '📅 Ballantii Booqashada Waa La Xaqiijiyey', message: 'Mulkiilaha guriga Isha Baydhabo wuxuu xaqiijiyey ballantaada booqashada guriga.', time: '5 daqiiqo ka hor', read: false, type: 'tour' },
-        { id: 2, title: '🏡 Guri Cusub oo Baydhabo ah', message: 'Villa casri ah oo 3 qol ah ayaa hadda lagu daray magaaladaada.', time: '1 saac ka hor', read: false, type: 'listing' },
-        { id: 3, title: '📄 Codsigaagii Kireysiga Waa La Aqbalay', message: 'Mulkiilaha wuxuu si guul leh u oggolaaday codsigaaga kireysiga!', time: '1 maalin ka hor', read: true, type: 'application' }
-      ];
-    } else if (lang === 'ar') {
-      return [
-        { id: 1, title: '📅 تم تأكيد موعد المعاينة', message: 'قام مالك العقار في بيدوا بتأكيد موعد زيارة ومعاينة المنزل بنجاح.', time: 'منذ ٥ دقائق', read: false, type: 'tour' },
-        { id: 2, title: '🏡 عقار جديد متاح في مدينتك', message: 'تم إدراج فيلا راقية ٣ غرف نوم في منطقتك.', time: 'منذ ساعة', read: false, type: 'listing' },
-        { id: 3, title: '📄 تم قبول طلب الاستئجار', message: 'وافق مالك العقار على طلب استئجار العقار بنجاح!', time: 'منذ يوم واحد', read: true, type: 'application' }
-      ];
-    } else {
-      return [
-        { id: 1, title: '📅 Viewing Tour Confirmed', message: 'The landlord confirmed your house viewing tour appointment.', time: '5 mins ago', read: false, type: 'tour' },
-        { id: 2, title: '🏡 New Property in Your City', message: 'A modern 3-bedroom villa was just listed in your city.', time: '1 hour ago', read: false, type: 'listing' },
-        { id: 3, title: '📄 Application Approved', message: 'Your rental application for the property was approved!', time: '1 day ago', read: true, type: 'application' }
-      ];
-    }
+    let custom: any[] = [];
+    try {
+      custom = JSON.parse(localStorage.getItem('goobjoog_inapp_notifications') || '[]');
+    } catch {}
+
+    const defaults = lang === 'so' ? [
+      { id: 'def_1', title: '📅 Ballantii Booqashada Waa La Xaqiijiyey', message: 'Mulkiilaha guriga Isha Baydhabo wuxuu xaqiijiyey ballantaada booqashada guriga.', time: '5 daqiiqo ka hor', read: false, type: 'tour' },
+      { id: 'def_2', title: '🏡 Guri Cusub oo Baydhabo ah', message: 'Villa casri ah oo 3 qol ah ayaa hadda lagu daray magaaladaada.', time: '1 saac ka hor', read: false, type: 'listing' },
+      { id: 'def_3', title: '📄 Codsigaagii Kireysiga Waa La Aqbalay', message: 'Mulkiilaha wuxuu si guul leh u oggolaaday codsigaaga kireysiga!', time: '1 maalin ka hor', read: true, type: 'application' }
+    ] : [
+      { id: 'def_1', title: '📅 Viewing Tour Confirmed', message: 'The landlord confirmed your house viewing tour appointment.', time: '5 mins ago', read: false, type: 'tour' },
+      { id: 'def_2', title: '🏡 New Property in Your City', message: 'A modern 3-bedroom villa was just listed in your city.', time: '1 hour ago', read: false, type: 'listing' },
+      { id: 'def_3', title: '📄 Application Approved', message: 'Your rental application for the property was approved!', time: '1 day ago', read: true, type: 'application' }
+    ];
+
+    return [...custom, ...defaults];
   });
 
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    try {
+      localStorage.setItem('goobjoog_inapp_notifications', JSON.stringify([]));
+    } catch {}
+  };
   
-  const deleteNotification = (id: number) => {
+  const deleteNotification = (id: any) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
@@ -61,26 +63,50 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ onClose,
         </button>
       </div>
 
-      {/* CONTENT */}
-      <div className="flex-1 overflow-y-auto p-4 pb-20 flex flex-col gap-3">
+      {/* LIST */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 max-w-2xl mx-auto w-full pb-20">
         {notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Bell size={48} className="text-slate-300 mb-4" />
-            <p className="text-slate-500 font-medium text-xs">{t.noNotificationsYet}</p>
+          <div className="text-center py-20 text-slate-400 space-y-2">
+            <span className="text-4xl block">🔔</span>
+            <p className="text-sm font-bold">
+              {lang === 'so' ? 'Ma jiraan ogeysiisyo cusub.' : lang === 'ar' ? 'لا توجد إشعارات جديدة.' : 'No new notifications.'}
+            </p>
           </div>
         ) : (
-          notifications.map(notif => (
-            <div key={notif.id} className={`relative p-4 rounded-2xl border flex gap-3 transition ${notif.read ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800' : 'bg-blue-50/50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800'}`}>
-              <div className="flex-1">
-                <h4 className={`text-xs font-bold ${notif.read ? 'text-slate-700 dark:text-slate-300' : 'text-blue-600 dark:text-blue-400'}`}>{notif.title}</h4>
-                <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{notif.message}</p>
-                <span className="text-[9px] text-slate-400 font-bold mt-2 block">{notif.time}</span>
+          notifications.map((n) => (
+            <div 
+              key={n.id} 
+              className={`p-4 rounded-2xl border transition flex items-start justify-between gap-3 shadow-sm ${
+                n.read 
+                  ? 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800/80 opacity-75' 
+                  : 'bg-white dark:bg-slate-900 border-blue-200 dark:border-blue-800 shadow-md'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className={`p-2.5 rounded-xl shrink-0 ${
+                  n.type === 'tour' ? 'bg-purple-100 dark:bg-purple-950 text-purple-600' :
+                  n.type === 'application' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600' :
+                  'bg-blue-100 dark:bg-blue-950 text-blue-600'
+                }`}>
+                  {n.type === 'tour' ? <Calendar size={18} /> : n.type === 'application' ? <FileText size={18} /> : <Home size={18} />}
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">{n.title}</h4>
+                    {!n.read && <span className="w-2 h-2 rounded-full bg-blue-600"></span>}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{n.message}</p>
+                  <span className="text-[10px] text-slate-400 block font-mono">{n.time}</span>
+                </div>
               </div>
+
               <button 
-                onClick={() => deleteNotification(notif.id)}
-                className="self-center p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-slate-800 transition"
+                onClick={() => deleteNotification(n.id)}
+                className="text-slate-300 hover:text-rose-500 p-1.5 transition rounded-lg hover:bg-rose-50 dark:hover:bg-slate-800"
+                aria-label="Delete"
               >
-                <Trash2 size={16} />
+                <Trash2 size={15} />
               </button>
             </div>
           ))
