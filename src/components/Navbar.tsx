@@ -14,8 +14,8 @@ interface NavbarProps {
   setLang: (lang: 'en' | 'so' | 'ar') => void;
   onOpenSettings?: () => void;
   onGoHome?: () => void;
-  activeLayout?: 'tenant' | 'homeowner' | 'administrator';
-  setActiveLayout?: (layout: 'tenant' | 'homeowner' | 'administrator') => void;
+  activeLayout?: 'tenant' | 'homeowner' | 'administrator' | 'financial_ledger';
+  setActiveLayout?: (layout: 'tenant' | 'homeowner' | 'administrator' | 'financial_ledger') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
@@ -329,38 +329,95 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
 
-              {/* User Info Card */}
-              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
-                    <User size={16} className="text-blue-600 dark:text-blue-400" />
-                    {currentUser.fullName}
-                  </span>
-                  {currentUser.isVerified && (
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
-                      <ShieldCheck size={12} /> {t.verified}
-                    </span>
+              {/* Premium User Info Card with Profile Picture Avatar */}
+              <div className="p-4 bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 rounded-2xl text-white shadow-lg flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  {currentUser.avatarUrl ? (
+                    <img 
+                      src={currentUser.avatarUrl} 
+                      alt={currentUser.fullName} 
+                      className="w-12 h-12 rounded-2xl object-cover border-2 border-white/80 shadow-md shrink-0" 
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold text-xl border border-white/30 shrink-0">
+                      <User size={22} className="text-white" />
+                    </div>
                   )}
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-extrabold text-sm truncate">{currentUser.fullName}</span>
+                      {currentUser.isVerified && (
+                        <span className="text-[9px] bg-emerald-400 text-emerald-950 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-0.5 shrink-0">
+                          ✓ {t.verified}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-blue-100/90 block truncate">{currentUser.phone}</span>
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {(currentUser.roles || ['tenant']).map((r: string) => {
-                    const roleStyle = 
-                      r === 'administrator' || r === 'admin' ? 'bg-rose-500 text-white' :
-                      r === 'homeowner' || r === 'landlord' ? 'bg-blue-600 text-white' :
-                      'bg-emerald-600 text-white';
-
-                    return (
-                      <span key={r} className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${roleStyle}`}>
+                {/* Role Badges & Quick View Switcher */}
+                <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex flex-wrap gap-1">
+                    {(currentUser.roles || ['tenant']).map((r: string) => (
+                      <span key={r} className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-white/20 text-white uppercase backdrop-blur-sm">
                         {getRoleLabel(r)}
                       </span>
-                    );
-                  })}
+                    ))}
+                  </div>
+
+                  {setActiveLayout && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          setActiveLayout('tenant');
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${
+                          activeLayout === 'tenant' ? 'bg-white text-blue-700 font-extrabold shadow' : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        🏠 {t.tenant}
+                      </button>
+
+                      {((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved') && (
+                        <button
+                          onClick={() => {
+                            setActiveLayout('homeowner');
+                            setMobileMenuOpen(false);
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition ${
+                            activeLayout === 'homeowner' ? 'bg-white text-blue-700 font-extrabold shadow' : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          🏡 {t.landlord}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Navigation Drawer Links */}
               <div className="flex flex-col gap-1">
+                {/* Financial Accounting Page Link for Landlords / Admins */}
+                {setActiveLayout && ((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved' || (currentUser?.roles || []).includes('administrator')) && (
+                  <button 
+                    onClick={() => { 
+                      setActiveLayout('financial_ledger'); 
+                      setMobileMenuOpen(false); 
+                    }} 
+                    className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/40 dark:to-blue-950/40 border border-emerald-200 dark:border-emerald-800/60 transition text-emerald-900 dark:text-emerald-200"
+                  >
+                    <div className="flex items-center gap-3 font-bold">
+                      <span className="text-base">📊</span>
+                      <span className="text-sm">{lang === 'so' ? 'Xisaabaadka & Dakhliga (Financial Ledger)' : 'Financial Accounting & Net Profit'}</span>
+                    </div>
+                    <ChevronRight size={16} className={`text-emerald-500 ${isArabic ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
+
                 <button 
                   onClick={() => { setActiveMenuModal('notifications'); setMobileMenuOpen(false); }} 
                   className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-700 dark:text-slate-300"
@@ -493,7 +550,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <NotificationsModal onClose={() => setActiveMenuModal(null)} lang={lang} />
       )}
       {activeMenuModal === 'settings' && (
-        <SettingsModal onClose={() => setActiveMenuModal(null)} currentUser={currentUser} lang={lang} />
+        <SettingsModal 
+          onClose={() => setActiveMenuModal(null)} 
+          currentUser={currentUser} 
+          lang={lang} 
+          activeLayout={activeLayout}
+          setActiveLayout={setActiveLayout}
+        />
       )}
       {activeMenuModal && activeMenuModal !== 'notifications' && activeMenuModal !== 'settings' && (
         <StaticPageModal 

@@ -27,7 +27,6 @@ CREATE POLICY "Allow public delete" ON public.profiles FOR DELETE USING (true);
 INSERT INTO public.profiles (id, full_name, phone, email, username, password, roles, upgrade_status, is_verified)
 VALUES
     ('u-admin1', 'Super Administrator', '252615550001', 'admin@goobjoog.com', 'admin', 'admin123', '{administrator}', 'none', true),
-    ('u-acc1', 'Somali Finance Accountant', '252615550002', 'finance@goobjoog.com', 'accountant', 'accountant123', '{accountant}', 'none', true),
     ('u-land1', 'Hassan Geedi (Landlord)', '252615551100', 'hassan@landlord.so', 'landlord', 'landlord123', '{homeowner}', 'none', true),
     ('u-tenant1', 'Abdi Omar (Tenant)', '252619992233', 'abdi@tenant.so', 'tenant', 'tenant123', '{tenant}', 'none', true)
 ON CONFLICT (username) DO NOTHING;
@@ -112,30 +111,45 @@ CREATE POLICY "Allow public update" ON public.applications FOR UPDATE USING (tru
 CREATE POLICY "Allow public delete" ON public.applications FOR DELETE USING (true);
 
 
--- 4. TRANSACTIONS (LEDGER) TABLE
-CREATE TABLE IF NOT EXISTS public.transactions (
+-- 4. HOUSE TOURS & VIEWING BOOKINGS TABLE
+CREATE TABLE IF NOT EXISTS public.house_tours (
     id TEXT PRIMARY KEY,
-    application_id TEXT NOT NULL,
-    obligation_type TEXT DEFAULT 'Application' CHECK (obligation_type IN ('Application', 'RentPayment')),
+    house_id TEXT NOT NULL,
     house_title TEXT NOT NULL,
-    sender_phone TEXT NOT NULL,
-    amount NUMERIC NOT NULL,
-    commission_amount NUMERIC DEFAULT 0,
-    payout_amount NUMERIC DEFAULT 0,
-    ref_number TEXT NOT NULL,
-    gateway TEXT NOT NULL CHECK (gateway IN ('evc_plus', 'zaad', 'sahal', 'card')),
-    status TEXT DEFAULT 'created' CHECK (status IN ('created', 'pending', 'processing', 'successful', 'failed', 'cancelled', 'expired', 'refunded')),
-    failure_reason TEXT,
-    verified BOOLEAN DEFAULT FALSE,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
-    completed_time TIMESTAMPTZ
+    tenant_id TEXT NOT NULL,
+    tenant_name TEXT NOT NULL,
+    tenant_phone TEXT NOT NULL,
+    landlord_id TEXT NOT NULL,
+    tour_date TEXT NOT NULL,
+    tour_time_slot TEXT NOT NULL CHECK (tour_time_slot IN ('morning', 'afternoon', 'evening')),
+    tour_type TEXT DEFAULT 'in_person' CHECK (tour_type IN ('in_person', 'video_call')),
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read access" ON public.transactions FOR SELECT USING (true);
-CREATE POLICY "Allow public insert" ON public.transactions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update" ON public.transactions FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete" ON public.transactions FOR DELETE USING (true);
+ALTER TABLE public.house_tours ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON public.house_tours FOR SELECT USING (true);
+CREATE POLICY "Allow public insert" ON public.house_tours FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update" ON public.house_tours FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete" ON public.house_tours FOR DELETE USING (true);
+
+-- Seed initial house tours
+INSERT INTO public.house_tours (
+    id, house_id, house_title, tenant_id, tenant_name, tenant_phone, 
+    landlord_id, tour_date, tour_time_slot, tour_type, status, notes
+)
+VALUES
+    (
+        'tour-101', 'h-1', 'Premium Somali Villa', 'u-tenant1', 'Abdi Omar (Tenant)', '252619992233',
+        'u-land1', '2026-08-12', 'afternoon', 'in_person', 'confirmed', 'Looking forward to viewing the 4-bedroom villa.'
+    ),
+    (
+        'tour-102', 'h-2', 'Standard Apartment', 'u-tenant1', 'Abdi Omar (Tenant)', '252619992233',
+        'u-land1', '2026-08-14', 'morning', 'video_call', 'pending', 'Requesting a live video tour walkthrough.'
+    )
+ON CONFLICT (id) DO NOTHING;
+
 
 
 -- 5. COMPLAINTS TABLE

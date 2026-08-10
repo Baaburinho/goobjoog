@@ -5,4 +5,6 @@ export * from './Complaint';
 export * from './AuditLog';
 export * from './User';
 export * from './Expense';
+export * from './HouseTour';
+
 

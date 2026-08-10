@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">hooosee-rents</string>
-    <string name="title_activity_main">hooosee-rents</string>
+    <string name="app_name">GoobJoog</string>
+    <string name="title_activity_main">GoobJoog</string>
     <string name="package_name">com.goobjoog.rents</string>
     <string name="custom_url_scheme">com.goobjoog.rents</string>
 </resources>

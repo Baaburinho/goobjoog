@@ -41,3 +41,12 @@ export const ComplaintStatus = {
   Resolved: 'resolved'
 } as const;
 export type ComplaintStatus = typeof ComplaintStatus[keyof typeof ComplaintStatus];
+
+export const TourStatus = {
+  Pending: 'pending',
+  Confirmed: 'confirmed',
+  Completed: 'completed',
+  Cancelled: 'cancelled'
+} as const;
+export type TourStatus = typeof TourStatus[keyof typeof TourStatus];
+

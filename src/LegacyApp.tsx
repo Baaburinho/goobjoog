@@ -1,16 +1,18 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
-import { UserRole, ApplicationStatus, ComplaintStatus } from './domain/enums';
+import { UserRole, ApplicationStatus, ComplaintStatus, TourStatus } from './domain/enums';
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient';
-import type { UserProfile, House, Application, Transaction, Complaint, AuditLog, Expense } from './domain/entities';
+import type { UserProfile, House, Application, HouseTour, Complaint, AuditLog, Expense } from './domain/entities';
 import { AuthPortal } from './components/AuthPortal';
 import { Navbar } from './components/Navbar';
 import { TenantDashboard } from './pages/TenantDashboard';
 import { LandlordDashboard } from './pages/LandlordDashboard';
+import { FinancialLedgerPage } from './pages/FinancialLedgerPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { SettingsPage } from './pages/SettingsPage';
 import { GoobJoogAI } from './components/GoobJoogAI';
 import { AppLockScreen } from './components/AppLockScreen';
+import { initNotificationChannels, sendTourNotification, sendApplicationNotification } from './shared/utils/notificationsHelper';
 
 // ==========================================
 // SEED USERS & SYSTEM STATE DATA
@@ -196,45 +198,36 @@ const INITIAL_APPLICATIONS: Application[] = [
   }
 ];
 
-const INITIAL_TRANSACTIONS: Transaction[] = [
+const INITIAL_TOURS: HouseTour[] = [
   {
-    id: 't1',
+    id: 'tour-101',
+    houseId: 'h1',
+    houseTitle: 'Villa Casri ah oo Raaxo leh',
+    tenantId: 'u2',
+    tenantName: 'Faduma Omar Ali',
     tenantPhone: '+252617779876',
-    landlordName: 'Abdi Rahman Elmi',
-    houseTitle: 'Luxury 3-Bedroom Villa with Garden',
-    amountTotal: 450.00,
-    commissionAmount: 45.00,
-    payoutAmount: 405.00,
-    currency: 'USD',
-    paymentMethod: 'evc_plus',
-    paymentStatus: 'successful',
-    telecomReference: 'WFI-EVC-994321',
-    date: '2026-07-01T09:12:00Z',
-    requestTime: '2026-07-01T09:10:00Z',
-    completedTime: '2026-07-01T09:12:00Z',
-    rentalObligationId: 'a1',
-    obligationType: 'Application',
-    verified: true
+    landlordId: 'u1',
+    tourDate: '2026-08-12',
+    tourTimeSlot: 'afternoon',
+    tourType: 'in_person',
+    status: 'confirmed',
+    notes: 'Excited to view the garden and water system.',
+    createdAt: new Date().toISOString()
   },
   {
-    id: 't2',
+    id: 'tour-102',
+    houseId: 'h2',
+    houseTitle: 'Dabaq Caadi ah oo Qurux badan',
+    tenantId: 'u2',
+    tenantName: 'Faduma Omar Ali',
     tenantPhone: '+252617779876',
-    landlordName: 'Abdi Rahman Elmi',
-    houseTitle: 'Luxury 3-Bedroom Villa with Garden',
-    amountTotal: 450.00,
-    commissionAmount: 45.00,
-    payoutAmount: 405.00,
-    currency: 'USD',
-    paymentMethod: 'sahal',
-    paymentStatus: 'failed',
-    failureReason: 'Insufficient Balance',
-    telecomReference: '',
-    date: '2026-06-30T10:00:00Z',
-    requestTime: '2026-06-30T10:00:00Z',
-    completedTime: '2026-06-30T10:01:00Z',
-    rentalObligationId: 'a1',
-    obligationType: 'Application',
-    verified: false
+    landlordId: 'u1',
+    tourDate: '2026-08-14',
+    tourTimeSlot: 'morning',
+    tourType: 'video_call',
+    status: 'pending',
+    notes: 'Requesting live video walkthrough.',
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -303,6 +296,7 @@ export default function LegacyApp() {
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    initNotificationChannels();
   }, [lang]);
 
   const [activeLayout, setActiveLayout] = useState<'tenant' | 'homeowner' | 'administrator'>('tenant');
@@ -316,11 +310,53 @@ export default function LegacyApp() {
   const [users, setUsers] = useState<UserProfile[]>(INITIAL_USERS);
   const [houses, setHouses] = useState<House[]>(INITIAL_HOUSES);
   const [applications, setApplications] = useState<Application[]>(INITIAL_APPLICATIONS);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [tours, setTours] = useState<HouseTour[]>(INITIAL_TOURS);
   const [complaints, setComplaints] = useState<Complaint[]>(INITIAL_COMPLAINTS);
   const [audits, setAudits] = useState<AuditLog[]>(INITIAL_AUDITS);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
+
+  const handleBookTour = async (newTour: HouseTour) => {
+    setTours(prev => [newTour, ...prev]);
+    addAuditLog('BOOK_TOUR', `Tenant scheduled house tour: ${newTour.houseTitle} on ${newTour.tourDate}`);
+
+    // Push Native Android/iOS Local Notification
+    sendTourNotification(newTour.tenantName, newTour.houseTitle, newTour.tourDate);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('house_tours').insert([{
+          id: newTour.id,
+          house_id: newTour.houseId,
+          house_title: newTour.houseTitle,
+          tenant_id: newTour.tenantId,
+          tenant_name: newTour.tenantName,
+          tenant_phone: newTour.tenantPhone,
+          landlord_id: newTour.landlordId,
+          tour_date: newTour.tourDate,
+          tour_time_slot: newTour.tourTimeSlot,
+          tour_type: newTour.tourType,
+          status: newTour.status,
+          notes: newTour.notes || ''
+        }]);
+      } catch (e) {
+        console.error('Error persisting house tour to Supabase:', e);
+      }
+    }
+  };
+
+  const handleUpdateTourStatus = async (tourId: string, status: string) => {
+    setTours(prev => prev.map(t => t.id === tourId ? { ...t, status: status as any } : t));
+    addAuditLog('UPDATE_TOUR_STATUS', `Landlord updated tour ${tourId} status to ${status}`);
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('house_tours').update({ status }).eq('id', tourId);
+      } catch (e) {
+        console.error('Error updating tour status in Supabase:', e);
+      }
+    }
+  };
 
   const handleAddExpense = (newExpense: Expense) => {
     setExpenses(prev => [newExpense, ...prev]);
@@ -405,29 +441,24 @@ export default function LegacyApp() {
             })));
           }
 
-          // 4. Fetch transactions
-          const { data: txs, error: tErr } = await supabase.from('transactions').select('*');
-          if (tErr) throw tErr;
-          if (txs) {
-            setTransactions(txs.map(t => ({
+          // 4. Fetch house_tours
+          const { data: toursData, error: tErr } = await supabase.from('house_tours').select('*');
+          if (tErr) console.warn('House tours fetch info:', tErr);
+          if (toursData && toursData.length > 0) {
+            setTours(toursData.map(t => ({
               id: t.id,
-              tenantPhone: t.sender_phone,
-              landlordName: 'Landlord',
+              houseId: t.house_id,
               houseTitle: t.house_title,
-              amountTotal: Number(t.amount),
-              commissionAmount: Number(t.commission_amount),
-              payoutAmount: Number(t.payout_amount),
-              currency: 'USD',
-              paymentMethod: t.gateway,
-              paymentStatus: t.status,
-              failureReason: t.failure_reason || '',
-              requestTime: t.timestamp,
-              completedTime: t.completed_time,
-              rentalObligationId: t.application_id,
-              obligationType: t.obligation_type || 'Application',
-              telecomReference: t.ref_number,
-              date: t.timestamp,
-              verified: t.verified
+              tenantId: t.tenant_id,
+              tenantName: t.tenant_name,
+              tenantPhone: t.tenant_phone,
+              landlordId: t.landlord_id,
+              tourDate: t.tour_date,
+              tourTimeSlot: t.tour_time_slot,
+              tourType: t.tour_type,
+              status: t.status,
+              notes: t.notes || '',
+              createdAt: t.created_at
             })));
           }
 
@@ -472,8 +503,7 @@ export default function LegacyApp() {
     const loadLocalBackup = () => {
       const localUsers = localStorage.getItem('goobjoog_users');
       const localHouses = localStorage.getItem('goobjoog_houses');
-      const localApps = localStorage.getItem('goobjoog_apps');
-      const localTxs = localStorage.getItem('goobjoog_txs');
+      const localTours = localStorage.getItem('goobjoog_tours');
       const localComplaints = localStorage.getItem('goobjoog_complaints');
       const localAudits = localStorage.getItem('goobjoog_audits');
 
@@ -494,7 +524,7 @@ export default function LegacyApp() {
       }
       if (localHouses) { try { setHouses(JSON.parse(localHouses)); } catch (e) {} }
       if (localApps) { try { setApplications(JSON.parse(localApps)); } catch (e) {} }
-      if (localTxs) { try { setTransactions(JSON.parse(localTxs)); } catch (e) {} }
+      if (localTours) { try { setTours(JSON.parse(localTours)); } catch (e) {} }
       if (localComplaints) { try { setComplaints(JSON.parse(localComplaints)); } catch (e) {} }
       if (localAudits) { try { setAudits(JSON.parse(localAudits)); } catch (e) {} }
     };
@@ -520,9 +550,9 @@ export default function LegacyApp() {
   }, [applications]);
   useEffect(() => {
     if (!isSupabaseConfigured) {
-      localStorage.setItem('goobjoog_txs', JSON.stringify(transactions));
+      localStorage.setItem('goobjoog_tours', JSON.stringify(tours));
     }
-  }, [transactions]);
+  }, [tours]);
   useEffect(() => {
     if (!isSupabaseConfigured) {
       localStorage.setItem('goobjoog_complaints', JSON.stringify(complaints));
@@ -686,6 +716,9 @@ export default function LegacyApp() {
     setApplications(prev => [newApp, ...prev]);
     addAuditLog('APPLICATION_SUBMIT', `Tenant ${currentUser.fullName} applied for ${house.title}.`);
 
+    // Push Native Android/iOS Local Notification
+    sendApplicationNotification(currentUser.fullName, house.title);
+
     if (isSupabaseConfigured) {
       try {
         await supabase.from('applications').insert({
@@ -806,81 +839,6 @@ export default function LegacyApp() {
     }
   };
 
-  const handlePaymentCreate = async (newTx: Transaction) => {
-    setTransactions(prev => [newTx, ...prev]);
-    addAuditLog('TRANSACTION_CREATED', `Payment attempt of $${newTx.amountTotal} via ${newTx.paymentMethod} created. Status: pending.`);
-  };
-
-  const handlePaymentProcess = async (txId: string) => {
-    setTransactions(prev => prev.map(t => t.id === txId ? { ...t, paymentStatus: 'processing' as const } : t));
-    addAuditLog('TRANSACTION_PROCESSING', `Transaction ${txId} is now processing.`);
-  };
-
-  const handlePaymentComplete = async (txId: string, isSuccess: boolean, reason?: string, telecomRef?: string) => {
-    const tx = transactions.find(t => t.id === txId);
-    if (!tx) return;
-
-    if (!isSuccess) {
-      setTransactions(prev => prev.map(t => t.id === txId ? { ...t, paymentStatus: 'failed' as const, failureReason: reason, completedTime: new Date().toISOString() } : t));
-      addAuditLog('TRANSACTION_FAILED', `Transaction ${txId} failed. Reason: ${reason || 'Unknown'}`);
-      return;
-    }
-
-    setTransactions(prev => prev.map(t => t.id === txId ? { ...t, paymentStatus: 'successful' as const, telecomReference: telecomRef, completedTime: new Date().toISOString() } : t));
-    setApplications(prev => prev.map(a => a.id === tx.rentalObligationId ? { ...a, status: 'rented' as const } : a));
-    
-    const app = applications.find(a => a.id === tx.rentalObligationId);
-    if (app) {
-      setHouses(prev => prev.map(h => h.id === app.houseId ? { ...h, status: 'rented' as const } : h));
-    }
-    
-    addAuditLog('TRANSACTION_PAYMENT', `Checkout of $${tx.amountTotal} succeeded via ${tx.paymentMethod}. Ref: ${telecomRef}`);
-
-    if (isSupabaseConfigured && tx && isSuccess) {
-      try {
-        await supabase.from('transactions').insert({
-          id: tx.id,
-          application_id: tx.rentalObligationId,
-          house_title: tx.houseTitle,
-          sender_phone: tx.tenantPhone,
-          amount: tx.amountTotal,
-          commission_amount: tx.commissionAmount,
-          payout_amount: tx.payoutAmount,
-          ref_number: telecomRef || '',
-          gateway: tx.paymentMethod,
-          status: 'successful',
-          verified: tx.verified
-        });
-
-        const appRecord = applications.find(a => a.id === tx.rentalObligationId);
-        if (appRecord) {
-          const rentAmount = appRecord.monthlyRent || 350; 
-          const depositPaid = appRecord.depositPaid || 0;
-          const monthsPaid = appRecord.monthsPaid || 0;
-
-          const isDepositPayment = tx.amountTotal >= rentAmount * 2;
-          const monthsPaidIncrement = rentAmount > 0 
-            ? (isDepositPayment 
-               ? Math.floor((tx.amountTotal - rentAmount * 2) / rentAmount) + 1 
-               : Math.floor(tx.amountTotal / rentAmount))
-            : 0;
-
-          await supabase.from('applications').update({
-            status: 'rented',
-            months_paid: monthsPaid + monthsPaidIncrement,
-            deposit_paid: isDepositPayment ? rentAmount : depositPaid
-          }).eq('id', tx.rentalObligationId);
-        }
-
-        if (app) {
-          await supabase.from('houses').update({ status: 'rented' }).eq('id', app.houseId);
-        }
-      } catch (err) {
-        console.error("Supabase payment processing failed:", err);
-      }
-    }
-  };
-
   // Landlord Actions
   const handleRegisterHouse = async (newHouse: House) => {
     setHouses(prev => [newHouse, ...prev]);
@@ -951,20 +909,6 @@ export default function LegacyApp() {
         await supabase.from('applications').update({ status: 'rejected', landlord_feedback: feedback }).eq('id', appId);
       } catch (err) {
         console.error("Supabase application reject failed:", err);
-      }
-    }
-  };
-
-  // Accountant Actions
-  const handleVerifyLedger = async (txId: string) => {
-    setTransactions(prev => prev.map(tx => tx.id === txId ? { ...tx, verified: true } : tx));
-    addAuditLog('LEDGER_RECONCILE', `Accountant verified ledger payment transaction ${txId}`);
-
-    if (isSupabaseConfigured) {
-      try {
-        await supabase.from('transactions').update({ verified: true }).eq('id', txId);
-      } catch (err) {
-        console.error("Supabase transaction verify failed:", err);
       }
     }
   };
@@ -1118,9 +1062,9 @@ export default function LegacyApp() {
   // ==========================================
   // CALCULATED METRICS
   // ==========================================
-  const totalRevenue = (transactions || []).filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + (t.amountTotal || 0), 0);
-  const systemCommission = (transactions || []).filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
-  const landlordPayouts = (transactions || []).filter(t => t.paymentStatus === 'successful').reduce((sum, t) => sum + (t.payoutAmount || 0), 0);
+  const totalRevenue = 0;
+  const systemCommission = 0;
+  const landlordPayouts = 0;
   const outstandingPayments = (applications || []).filter(a => a.status === 'approved').length * 350;
   const totalHousesCount = (houses || []).length;
   const activeTenancyRate = totalHousesCount > 0 ? parseFloat((((houses || []).filter(h => h.status === 'rented').length / totalHousesCount) * 100).toFixed(1)) : 0;
@@ -1192,7 +1136,7 @@ export default function LegacyApp() {
               <TenantDashboard
                 houses={houses}
                 applications={applications}
-                transactions={transactions}
+                tours={tours}
                 favorites={favorites}
                 currentTenant={currentUser}
                 onApply={handleApply}
@@ -1200,9 +1144,7 @@ export default function LegacyApp() {
                 onToggleFavorite={handleToggleFavorite}
                 onAddReview={handleAddReview}
                 onAddComplaint={handleAddComplaint}
-                onPaymentCreate={handlePaymentCreate}
-                onPaymentProcess={handlePaymentProcess}
-                onPaymentComplete={handlePaymentComplete}
+                onBookTour={handleBookTour}
                 addAuditLog={addAuditLog}
                 lang={lang}
                 activeLayout={activeLayout}
@@ -1218,20 +1160,33 @@ export default function LegacyApp() {
               <LandlordDashboard
                 houses={houses}
                 applications={applications}
-                payoutAmount={landlordPayouts}
+                tours={tours}
                 currentLandlord={currentUser || INITIAL_USERS[0]}
                 expenses={expenses}
-                transactions={transactions}
                 onRegisterHouse={handleRegisterHouse}
                 onDeleteHouse={handleDeleteHouse}
                 onApproveApplication={handleApproveApplication}
                 onRejectApplication={handleRejectApplication}
+                onUpdateTourStatus={handleUpdateTourStatus}
                 onAddExpense={handleAddExpense}
                 onDeleteExpense={handleDeleteExpense}
                 addAuditLog={addAuditLog}
                 lang={lang}
                 activeLayout={activeLayout}
                 setActiveLayout={setActiveLayout}
+              />
+            )}
+
+            {activeLayout === 'financial_ledger' && (
+              <FinancialLedgerPage
+                houses={houses}
+                currentLandlord={currentUser || INITIAL_USERS[0]}
+                expenses={expenses}
+                onAddExpense={handleAddExpense}
+                onDeleteExpense={handleDeleteExpense}
+                addAuditLog={addAuditLog}
+                lang={lang}
+                onBackToDashboard={() => setActiveLayout('homeowner')}
               />
             )}
 
@@ -1263,7 +1218,7 @@ export default function LegacyApp() {
         currentUser={currentUser}
         houses={houses}
         applications={applications}
-        transactions={transactions}
+        transactions={[]}
         complaints={complaints}
         favorites={favorites}
         lang={lang}

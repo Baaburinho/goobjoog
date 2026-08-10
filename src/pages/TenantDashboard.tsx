@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, MapPin, Home, DollarSign, User, Percent, 
+  Search, MapPin, Home, User, Percent, 
   Clock, Check, X, Plus, Trash2, Heart, 
-  Download, Smartphone, CheckCircle2, RefreshCw, MessageSquare, Navigation
+  Download, Smartphone, CheckCircle2, RefreshCw, MessageSquare, Navigation, Calendar, Video, Compass
 } from 'lucide-react';
-import type { House, Application, Transaction, Complaint, UserProfile } from '../domain/entities';
-import { PaymentStatus, UserRole } from '../domain/enums';
+import type { House, Application, HouseTour, Complaint, UserProfile } from '../domain/entities';
+import { UserRole } from '../domain/enums';
 import { SomaliMap } from '../components/SomaliMap';
+import { BookTourModal } from '../components/modals/BookTourModal';
+import { detectCurrentCity } from '../shared/utils/locationHelper';
 import { translations } from '../lib/translations';
 
 interface TenantDashboardProps {
   houses: House[];
   applications: Application[];
-  transactions: Transaction[];
+  tours: HouseTour[];
   favorites: string[];
   currentTenant: UserProfile;
   onApply: (house: House, e: React.FormEvent) => void;
@@ -20,9 +22,7 @@ interface TenantDashboardProps {
   onToggleFavorite: (houseId: string, e: React.MouseEvent) => void;
   onAddReview: (houseId: string, rating: number, comment: string) => void;
   onAddComplaint: (houseId: string, title: string, details: string) => void;
-  onPaymentCreate: (tx: Transaction) => void;
-  onPaymentProcess: (txId: string) => void;
-  onPaymentComplete: (txId: string, isSuccess: boolean, reason?: string, telecomRef?: string) => void;
+  onBookTour: (tour: HouseTour) => void;
   addAuditLog: (action: string, details: string) => void;
   lang: 'en' | 'so' | 'ar';
   activeLayout: 'tenant' | 'homeowner' | 'administrator';
@@ -36,7 +36,7 @@ interface TenantDashboardProps {
 export const TenantDashboard: React.FC<TenantDashboardProps> = ({
   houses,
   applications,
-  transactions,
+  tours = [],
   favorites,
   currentTenant,
   onApply,
@@ -44,9 +44,7 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
   onToggleFavorite,
   onAddReview,
   onAddComplaint,
-  onPaymentCreate,
-  onPaymentProcess,
-  onPaymentComplete,
+  onBookTour,
   addAuditLog,
   lang,
   activeLayout,
@@ -59,11 +57,41 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
   const t = translations[lang] || translations.en;
   const isArabic = lang === 'ar';
 
+  // Navigation / Filter States
+  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'apps' | 'saved' | 'tours' | 'profile'>('home');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCity, setFilterCity] = useState('');
+  const [filterPrice, setFilterPrice] = useState(700);
+  const [filterRooms, setFilterRooms] = useState('all');
+
+  // GPS Location Auto-Detection State
+  const [detectedCity, setDetectedCity] = useState<string>('Baidoa');
+  const [isGpsLoading, setIsGpsLoading] = useState<boolean>(true);
+  const [userHasSwitchedCity, setUserHasSwitchedCity] = useState<boolean>(false);
+
+  useEffect(() => {
+    detectCurrentCity().then((res) => {
+      setDetectedCity(res.city);
+      setIsGpsLoading(false);
+      if (!userHasSwitchedCity) {
+        setFilterCity(res.city);
+      }
+    });
+  }, []);
+
+  const handleCityChange = (cityName: string) => {
+    setFilterCity(cityName);
+    setUserHasSwitchedCity(cityName !== '');
+  };
+
   // Smart Upgrade Modal & Algorithm State
   const [showSmartUpgradeModal, setShowSmartUpgradeModal] = useState(false);
   const [upgradeIdNumber, setUpgradeIdNumber] = useState('');
   const [upgradePhone, setUpgradePhone] = useState(currentTenant?.phone || '');
   const [upgradePropCount, setUpgradePropCount] = useState('1');
+
+  // Tour Booking Modal State
+  const [tourModalHouse, setTourModalHouse] = useState<House | null>(null);
 
   const handleSmartUpgradeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,28 +182,12 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
     return house.description;
   };
 
-  // Navigation / Filter States
-  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'apps' | 'saved' | 'payments' | 'profile'>('home');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCity, setFilterCity] = useState('');
-  const [filterPrice, setFilterPrice] = useState(700);
-  const [filterRooms, setFilterRooms] = useState('all');
-
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     setActiveImageIndex(0);
   }, [selectedHouse]);
   
-  // Checkout flow states (USSD Simulation)
-  const [checkoutApp, setCheckoutApp] = useState<Application | null>(null);
-  const [paymentPhone, setPaymentPhone] = useState(currentTenant.phone);
-  const [paymentGateway, setPaymentGateway] = useState<'evc_plus' | 'zaad' | 'sahal'>('evc_plus');
-  const [showPhoneSimulator, setShowPhoneSimulator] = useState(false);
-  const [phoneScreenState, setPhoneScreenState] = useState<'prompt' | 'processing' | 'success' | 'failed'>('prompt');
-  const [enteredPin, setEnteredPin] = useState('');
-  const [transactionRef, setTransactionRef] = useState('');
-
   // Rating and review states
   const [ratingVal, setRatingVal] = useState(5);
   const [ratingComment, setRatingComment] = useState('');
@@ -183,35 +195,9 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
   const [newComplaintTitle, setNewComplaintTitle] = useState('');
   const [newComplaintDetails, setNewComplaintDetails] = useState('');
   const [newComplaintHouseId, setNewComplaintHouseId] = useState('');
-  const [copiedUSSD, setCopiedUSSD] = useState(false);
 
-  const getUSSDCode = () => {
-    if (!checkoutApp) return '';
-    const house = houses.find(h => h.id === checkoutApp.houseId);
-    if (!house) return '';
-    const landlordPhone = house.landlordPhone.replace(/\+/g, '').replace(/\s/g, '').trim();
-    if (paymentGateway === 'evc_plus') {
-      return `*712*${landlordPhone}*${house.pricePerMonth}#`;
-    } else if (paymentGateway === 'zaad') {
-      return `*212*3*${landlordPhone}*${house.pricePerMonth}#`;
-    } else { // Sahal
-      return `*912*${landlordPhone}*${house.pricePerMonth}#`;
-    }
-  };
-
-  const handleCopyUSSD = () => {
-    const code = getUSSDCode();
-    if (code) {
-      navigator.clipboard.writeText(code);
-      setCopiedUSSD(true);
-      setTimeout(() => setCopiedUSSD(false), 2000);
-      addAuditLog('USSD_COPY', `Tenant copied dial command: ${code}`);
-    }
-  };
-
-  // Calculations
   const cityCounts = React.useMemo(() => {
-    const counts: Record<string, number> = { Mogadishu: 0, Hargeisa: 0, Garowe: 0, Kismayo: 0 };
+    const counts: Record<string, number> = { Mogadishu: 0, Hargeisa: 0, Garowe: 0, Kismayo: 0, Baidoa: 0 };
     houses.forEach(h => {
       if (h.status === 'available') {
         counts[h.city] = (counts[h.city] || 0) + 1;
@@ -266,82 +252,6 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
     alert(lang === 'so' ? 'Cabashadaada waa la gudbiyey waana lala soconayaa.' : lang === 'ar' ? 'تم إرسال الشكوى الرسمية ومتابعتها مع الإدارة.' : 'Your complaint has been submitted and escalated to support.');
   };
 
-  const triggerPaymentFlow = (app: Application) => {
-    setCheckoutApp(app);
-    setPaymentPhone(currentTenant.phone);
-    setPhoneScreenState('prompt');
-    setEnteredPin('');
-    setShowPhoneSimulator(true);
-  };
-
-  const closePhoneSimulator = () => {
-    setShowPhoneSimulator(false);
-    setCheckoutApp(null);
-  };
-
-  const handleKeypadPress = (num: string) => {
-    if (enteredPin.length < 4) {
-      setEnteredPin(prev => prev + num);
-    }
-  };
-
-  const handleKeypadDelete = () => {
-    setEnteredPin(prev => prev.slice(0, -1));
-  };
-
-  const submitUSSDPayment = () => {
-    if (enteredPin.length < 4) {
-      alert(lang === 'so' ? 'Fadlan geli 4 lambar oo PIN ah.' : lang === 'ar' ? 'يرجى إدخال رمز سري مكون من ٤ أرقام.' : 'Please enter a 4-digit PIN.');
-      return;
-    }
-    
-    const house = houses.find(h => h.id === checkoutApp?.houseId);
-    if (!house || !checkoutApp) return;
-
-    const amount = house.pricePerMonth;
-    const comm = parseFloat((amount * 0.1).toFixed(2));
-    const payout = parseFloat((amount * 0.9).toFixed(2));
-    const txId = 'tx-' + Math.random().toString(36).substr(2, 9);
-    
-    const newTx: Transaction = {
-      id: txId,
-      tenantPhone: paymentPhone,
-      landlordName: house.landlordName,
-      houseTitle: house.title,
-      amountTotal: amount,
-      commissionAmount: comm,
-      payoutAmount: payout,
-      currency: 'USD',
-      paymentMethod: paymentGateway === 'evc_plus' ? 'evc_plus' : paymentGateway === 'zaad' ? 'zaad' : 'sahal',
-      paymentStatus: PaymentStatus.Pending,
-      requestTime: new Date().toISOString(),
-      rentalObligationId: checkoutApp.id,
-      obligationType: 'Application',
-      date: new Date().toISOString(),
-      verified: false
-    };
-
-    onPaymentCreate(newTx);
-    onPaymentProcess(txId);
-    setPhoneScreenState('processing');
-    
-    setTimeout(() => {
-      const isSuccess = enteredPin === '1234' || enteredPin === '4321';
-      
-      if (isSuccess) {
-        const refPrefix = paymentGateway === 'evc_plus' ? 'WAAFI-EVC' : paymentGateway === 'zaad' ? 'TX-ZAAD' : 'GOLIS-SHL';
-        const reference = `${refPrefix}-${Math.floor(100000 + Math.random() * 900000)}`;
-
-        onPaymentComplete(txId, true, undefined, reference);
-        setTransactionRef(reference);
-        setPhoneScreenState('success');
-      } else {
-        onPaymentComplete(txId, false, lang === 'so' ? 'Furaha PIN-ka waa khalad' : lang === 'ar' ? 'رمز السداد غير صحيح' : 'Invalid PIN');
-        setPhoneScreenState('failed');
-      }
-    }, 1800);
-  };
-
   const getCityName = (city: string) => {
     switch (city) {
       case 'Mogadishu':
@@ -383,6 +293,8 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
         {/* LEFT SEARCH PANEL & LISTINGS */}
         <div className={`lg:col-span-8 flex-col gap-6 ${['home', 'search'].includes(activeTab) ? 'flex' : 'hidden lg:flex'}`}>
         
+
+
         {/* QUICK ACTIONS BAR (Mobile Home) */}
         <div className={`grid grid-cols-4 gap-2 lg:hidden ${activeTab === 'home' ? 'flex' : 'hidden'}`}>
           <button onClick={() => setActiveTab('search')} className="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center gap-1 active:scale-95 transition">
@@ -393,9 +305,9 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
             <CheckCircle2 size={20} className="text-emerald-600" />
             <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 text-center leading-tight">{t.navApplications}</span>
           </button>
-          <button onClick={() => setActiveTab('payments')} className="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center gap-1 active:scale-95 transition">
-            <DollarSign size={20} className="text-blue-600" />
-            <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 text-center leading-tight">{t.navPayments}</span>
+          <button onClick={() => setActiveTab('tours')} className="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center gap-1 active:scale-95 transition">
+            <Calendar size={20} className="text-blue-600" />
+            <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400 text-center leading-tight">{t.navTours}</span>
           </button>
           <button onClick={onUpgradeToLandlord} className="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center gap-1 active:scale-95 transition">
             <Home size={20} className="text-amber-500" />
@@ -753,13 +665,21 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
               </div>
             </div>
 
-            {/* Action Buttons: Apply, WhatsApp, Complaint */}
+            {/* Action Buttons: Apply, Schedule Viewing Tour, WhatsApp, Complaint */}
             <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={(e) => handleApplyWrapper(selectedHouse, e)}
                 className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition"
               >
                 {t.applyNow}
+              </button>
+
+              <button
+                onClick={() => setTourModalHouse(selectedHouse)}
+                className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5"
+              >
+                <Calendar size={16} />
+                <span>{t.bookTourBtn}</span>
               </button>
 
               <a
@@ -875,141 +795,82 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
         </div>
       )}
 
-      {/* USSD CHECKOUT & PHONE SIMULATOR MODAL */}
-      {showPhoneSimulator && checkoutApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" dir={isArabic ? 'rtl' : 'ltr'}>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative space-y-4">
-            
-            <button
-              onClick={closePhoneSimulator}
-              className={`absolute top-4 ${isArabic ? 'left-4' : 'right-4'} p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800`}
-            >
-              <X size={18} />
-            </button>
-
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.ussdCheckoutTitle}</h3>
-
-            {/* Gateway Selection */}
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => setPaymentGateway('evc_plus')}
-                className={`py-2 px-2 text-xs font-bold rounded-xl border transition ${
-                  paymentGateway === 'evc_plus' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                {t.evcPlus}
-              </button>
-              <button
-                onClick={() => setPaymentGateway('zaad')}
-                className={`py-2 px-2 text-xs font-bold rounded-xl border transition ${
-                  paymentGateway === 'zaad' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                {t.zaad}
-              </button>
-              <button
-                onClick={() => setPaymentGateway('sahal')}
-                className={`py-2 px-2 text-xs font-bold rounded-xl border transition ${
-                  paymentGateway === 'sahal' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                {t.sahal}
-              </button>
+      {/* HOUSE TOURS VIEW (WHEN TOURS TAB IS ACTIVE) */}
+      {activeTab === 'tours' && (
+        <div className="glass-panel p-6 rounded-2xl shadow-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <Calendar className="text-blue-600" size={20} />
+                <span>{t.myToursTitle}</span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                {lang === 'so' ? 'Dhammaan ballamaha booqashada guryaha aad qabsatay' : 'All scheduled house viewing appointments'}
+              </p>
             </div>
-
-            {/* USSD Dial Code Display */}
-            <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-between">
-              <div>
-                <span className="text-[10px] text-slate-400 block">{t.dialUssdCommand}</span>
-                <code className="text-xs font-bold text-blue-600">{getUSSDCode()}</code>
-              </div>
-              <button
-                onClick={handleCopyUSSD}
-                className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow transition"
-              >
-                {copiedUSSD ? t.copied : t.copy}
-              </button>
-            </div>
-
-            {/* Phone Screen Simulated State */}
-            {phoneScreenState === 'prompt' && (
-              <div className="space-y-3">
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{t.enterPinPrompt}</p>
-                <div className="flex justify-center gap-2">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-lg font-bold"
-                    >
-                      {enteredPin[i] ? '•' : ''}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Keypad */}
-                <div className="grid grid-cols-3 gap-2 pt-2">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map((k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() => {
-                        if (k === 'C') setEnteredPin('');
-                        else if (k === '⌫') handleKeypadDelete();
-                        else handleKeypadPress(k);
-                      }}
-                      className="py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-100 font-bold text-sm rounded-xl transition active:scale-95"
-                    >
-                      {k}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={submitUSSDPayment}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition"
-                >
-                  {t.confirm} (PIN: 1234)
-                </button>
-              </div>
-            )}
-
-            {phoneScreenState === 'processing' && (
-              <div className="py-10 text-center space-y-3">
-                <RefreshCw className="animate-spin text-blue-600 mx-auto" size={32} />
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.simulatingNetwork}</p>
-              </div>
-            )}
-
-            {phoneScreenState === 'success' && (
-              <div className="py-6 text-center space-y-3">
-                <CheckCircle2 className="text-emerald-500 mx-auto" size={48} />
-                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.paymentCompletedSuccess}</h4>
-                <span className="text-xs text-slate-400 font-mono block">Ref: {transactionRef}</span>
-                <button
-                  onClick={closePhoneSimulator}
-                  className="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl shadow"
-                >
-                  {t.gotIt}
-                </button>
-              </div>
-            )}
-
-            {phoneScreenState === 'failed' && (
-              <div className="py-6 text-center space-y-3">
-                <X className="text-rose-500 mx-auto" size={48} />
-                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.paymentFailedReason}</h4>
-                <button
-                  onClick={() => setPhoneScreenState('prompt')}
-                  className="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl shadow"
-                >
-                  {t.retryPaymentBtn}
-                </button>
-              </div>
-            )}
-
           </div>
+
+          {tours.length === 0 ? (
+            <div className="text-center py-12 space-y-3">
+              <Calendar className="text-slate-300 dark:text-slate-700 mx-auto" size={48} />
+              <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                {lang === 'so' ? 'Weli wax ballan booqasho ah ma qabsan' : 'No tour viewings scheduled yet'}
+              </h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                {lang === 'so' ? 'Dooro guri aad xiiseynayso ka dibna koodka "Ballan Ka Samayso Booqashada" taabo.' : 'Explore properties and click "Schedule Viewing" to book a tour with the landlord.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {tours.map((tour) => (
+                <div key={tour.id} className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-3 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{tour.houseTitle}</h4>
+                      <p className="text-[11px] text-slate-400 font-mono">ID: {tour.id}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                      tour.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' :
+                      tour.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300' :
+                      'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                    }`}>
+                      {tour.status === 'confirmed' ? t.tourConfirmed : tour.status === 'pending' ? t.tourPending : tour.status}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1 font-medium">
+                    <p className="flex items-center gap-1.5">
+                      <Calendar size={14} className="text-blue-600" />
+                      <span>{tour.tourDate} • {tour.tourTimeSlot.toUpperCase()}</span>
+                    </p>
+                    <p className="flex items-center gap-1.5">
+                      {tour.tourType === 'video_call' ? <Video size={14} className="text-teal-600" /> : <MapPin size={14} className="text-emerald-600" />}
+                      <span>{tour.tourType === 'video_call' ? 'Live Video Tour' : 'In-Person Location Visit'}</span>
+                    </p>
+                    {tour.notes && (
+                      <p className="text-[11px] text-slate-500 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 italic">
+                        "{tour.notes}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
+
+      {/* BOOK TOUR MODAL */}
+      <BookTourModal
+        isOpen={Boolean(tourModalHouse)}
+        onClose={() => setTourModalHouse(null)}
+        house={tourModalHouse}
+        currentTenant={currentTenant}
+        onBookTour={(tour) => {
+          onBookTour(tour);
+          alert(t.tourBookedSuccess);
+        }}
+      />
 
       {/* MOBILE BOTTOM NAVIGATION BAR */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-40 py-2 px-4 flex justify-between items-center safe-pb shadow-lg" dir={isArabic ? 'rtl' : 'ltr'}>
@@ -1038,11 +899,11 @@ export const TenantDashboard: React.FC<TenantDashboardProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('payments')}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'payments' ? 'text-blue-600' : 'text-slate-400'}`}
+          onClick={() => setActiveTab('tours')}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'tours' ? 'text-blue-600' : 'text-slate-400'}`}
         >
-          <DollarSign size={18} />
-          <span className="text-[10px] font-bold">{t.navPayments}</span>
+          <Calendar size={18} />
+          <span className="text-[10px] font-bold">{t.navTours}</span>
         </button>
 
         <button

@@ -68,11 +68,11 @@ export const GoobJoogAI: React.FC<GoobJoogAIProps> = ({
   const triggerGreeting = () => {
     let greeting = "";
     if (lang === 'so') {
-      greeting = `Ku soo dhowow Caawiyaha Caqliga Badan ee GoobJoog! 👋\n\nWaad salaaman tahay ${currentUser.fullName}. Waxaan diyaar u ahay inaan kaa caawiyo:\n• Raadinta guryaha jaban ama kuwa raaxada leh\n• Bixinta kirada ee EVC Plus, Zaad, iyo Sahal\n• La socodka codsiyadaada iyo noqoshada mulkiile\n\nFadlan ku qor su'aal kasta oo aad qabto ama dooro xulashooyinka hoose:`;
+      greeting = `Ku soo dhowow Caawiyaha Caqliga Badan ee GoobJoog! 🤖✨\n\nWaad salaaman tahay ${currentUser.fullName}. Waxaan diyaar u ahay inaan kaa caawiyo:\n• 📅 Qabsashada ballanta booqashada guryaha (House Tours)\n• 📍 Raadinta guryaha Baidoa, Muqdisho, Hargeysa, Garoowe, Kismaayo, jso\n• 🏡 Maareynta codsiyadaada iyo dalacsiinta Mulkiilaha\n\nFadlan ku qor su'aal kasta oo aad qabto ama dooro xulashooyinka hoose:`;
     } else if (lang === 'ar') {
-      greeting = `مرحباً بك في مساعد GoobJoog الذكي! 👋\n\nأهلاً بك يا ${currentUser.fullName}. أنا هنا لمساعدتك في كل ما يتعلق بالمنصة:\n• استكشاف المنازل والشقق بأسعار مناسبة أو فاخرة\n• سداد الإيجار عبر EVC Plus و Zaad و Sahal\n• متابعة طلباتك أو ترقية حسابك إلى مالك عقار\n\nيرجى كتابة أي استفسار تريده أو الضغط على الخيارات السريعة أدناه:`;
+      greeting = `مرحباً بك في مساعد GoobJoog الذكي الفائق! 🤖✨\n\nأهلاً بك يا ${currentUser.fullName}. أنا هنا لمساعدتك في كل ما يتعلق بالمنصة:\n• 📅 حجز مواعيد معاينة العقارات ومزيارات المنزل (House Tours)\n• 📍 استكشاف البيوت في بيدوا، مقديشو، هرجيسا، غاروي، كيسمايو وغيرها\n• 🏡 متابعة طلباتك أو ترقية حسابك إلى مالك عقار\n\nيرجى كتابة أي استفسار تريده أو الضغط على الخيارات السريعة أدناه:`;
     } else {
-      greeting = `Welcome to GoobJoog Smart Assistant! 👋\n\nHello, ${currentUser.fullName}. I can help you with:\n• Searching affordable or luxury houses & apartments\n• Paying rent via EVC Plus, Zaad, and Sahal\n• Tracking applications and becoming a landlord\n\nFeel free to ask me any question in natural language:`;
+      greeting = `Welcome to GoobJoog Smart AI Assistant! 🤖✨\n\nHello, ${currentUser.fullName}. I can assist you with:\n• 📅 Booking house viewing tours & site visits\n• 📍 Searching properties in Baidoa, Mogadishu, Hargeisa, Garowe, etc.\n• 🏡 Tracking applications & upgrading to a Landlord account\n\nFeel free to ask me any question in natural language:`;
     }
     
     setMessages([
@@ -163,13 +163,21 @@ export const GoobJoogAI: React.FC<GoobJoogAIProps> = ({
       return { intent: 'Gratitude' };
     }
 
-    // 2. Payments / Mobile Money (EVC Plus, Zaad, Sahal)
+    // 2. House Viewing Tours / Ballan Booqasho
+    if (
+      text.includes('tour') || text.includes('booqasho') || text.includes('ballan') || text.includes('viewing') ||
+      text.includes('arag') || text.includes('sida loo arko') || text.includes('معاينة') || text.includes('زيارة') ||
+      text.includes('موعد') || text.includes('حجز')
+    ) {
+      return { intent: 'TourBookingIntent' };
+    }
+
+    // 3. Payments & Direct Contact
     if (
       text.includes('pay') || text.includes('evc') || text.includes('zaad') || text.includes('sahal') ||
       text.includes('hormuud') || text.includes('telesom') || text.includes('golis') || text.includes('pin') ||
       text.includes('lacag') || text.includes('dhaf') || text.includes('bixi') || text.includes('bixinta') ||
       text.includes('kirada') || text.includes('دفع') || text.includes('سداد') || text.includes('تحويل') ||
-      text.includes('ايفيسي') || text.includes('زاد') || text.includes('ساهل') || text.includes('فلوس') ||
       text.includes('طريقة الدفع') || text.includes('كيف ادفع')
     ) {
       return { intent: 'PaymentIntent' };
@@ -407,13 +415,24 @@ export const GoobJoogAI: React.FC<GoobJoogAIProps> = ({
         break;
       }
 
+      case 'TourBookingIntent': {
+        if (lang === 'so') {
+          botReply = `📅 Qabsashada Ballanta Booqashada Guriga (House Tour):\n\n1. Raadi ama taabo guriga aad rabto inaad aragto.\n2. Riix batoonka 'Ballan Ka Samayso Booqashada'.\n3. Dooro Taariikhda, Waqtiga (Subax, Galab, Habeen), iyo Nooca booqashada (In-Person ama Live Video Call Tour).\n4. La soco ballamahaaga qaybta **📅 Booqasho (Tours)** ee navigation bar-ka hoose.`;
+        } else if (lang === 'ar') {
+          botReply = `📅 حجز موعد معاينة منزل (House Viewing Tour):\n\n١. اختر المنزل الذي ترغب في زيارته.\n٢. اضغط على زر 'حجز موعد معاينة'.\n٣. حدد التاريخ، الوقت (صباحاً، عصراً، مساءً)، ونوع المعاينة (حضورية أو عبر فيديو مباشر).\n٤. يمكنك متابعة مواعيدك في تبويب **📅 زيارات (Tours)** بأسفل الشاشة.`;
+        } else {
+          botReply = `📅 Scheduling a House Viewing Tour:\n\n1. Pick the house you want to inspect.\n2. Click 'Book Viewing Tour'.\n3. Choose your Date, Time Slot (Morning, Afternoon, Evening), and Tour Type (In-Person or Live Video Call Tour).\n4. Manage all your appointments under the **📅 Tours** tab at the bottom bar.`;
+        }
+        break;
+      }
+
       case 'PaymentIntent': {
         if (lang === 'so') {
-          botReply = `Bixinta kirada GoobJoog waa mid toos ah oo aad u fudud:\n\n1. Tag qaybta **Lacag Bixinta (Payments)**.\n2. Dooro dalabkaaga kireysiga ee la oggolaaday.\n3. Dooro habkaaga: **EVC Plus**, **Zaad**, ama **Sahal**.\n4. Geli 4-ta lambar ee sirta ah (PIN) taleefankaaga si lacagtu toos ugu xisaabtanto diiwaanka.\n\nLacag bixintu waa bilaash mana jiro kharash dheeraad ah.`;
+          botReply = `Nidaamka GoobJoog hadda wuxuu diiradda saarayaa Ballanta Booqashada Guryaha (House Viewing Tours) iyo xiriirinta tooska ah ee Mulkiilaha:\n\n1. Dooro guriga aad xiisaynayso.\n2. Riix 'Ballan Ka Samayso Booqashada' si aad u doorato taariikhda & waqtiga.\n3. Marka mulkiiluhu ansixiyo, toos ayaad u kireysan kartaa iyadoo lagula xiriirayo WhatsApp/Phone.`;
         } else if (lang === 'ar') {
-          botReply = `سداد الإيجار الشهري عبر GoobJoog يتم فورياً وبأعلى معايير الأمان:\n\n١. انتقل إلى تبويب **المدفوعات (Payments)**.\n٢. اختر طلب الاستئجار المعتمد الخاص بك.\n٣. حدد محفظتك المفضلة: **EVC Plus** أو **Zaad** أو **Sahal**.\n٤. أدخل رمز الدفع السري (PIN) المكون من ٤ أرقام لتأكيد التحويل فوراً.\n\nالمعاملات مشفرة وتتم مزامنتها مباشرة مع قيود الحسابات.`;
+          botReply = `يركز نظام GoobJoog الآن على حجز مواعيد معاينة العقارات (House Tours) والتواصل المباشر مع المالك:\n\n١. اختر العقار الذي يعجبك.\n٢. اضغط على 'حجز موعد معاينة' وتحديد التاريخ والوقت المناسب.\n٣. بعد موافقة المالك، يتم التواصل المباشر معك عبر الواتساب أو الهاتف للاتفاق.`;
         } else {
-          botReply = `Paying rent on GoobJoog is seamless and instant:\n\n1. Navigate to the **Payments** tab.\n2. Select your approved rental application.\n3. Choose your gateway: **EVC Plus**, **Zaad**, or **Sahal**.\n4. Enter your 4-digit mobile money PIN to complete payment.\n\nTransactions are securely synced with the financial ledger.`;
+          botReply = `GoobJoog platform focuses on direct House Viewing Tours and instant landlord communication:\n\n1. Select any property you like.\n2. Click 'Book Viewing Tour' to schedule a date & time slot.\n3. Once confirmed, you can inspect the house or communicate directly via WhatsApp/Phone.`;
         }
         break;
       }
@@ -512,9 +531,9 @@ export const GoobJoogAI: React.FC<GoobJoogAIProps> = ({
   };
 
   const suggestionChips = [
+    lang === 'so' ? '📅 Ballan Booqasho' : lang === 'ar' ? '📅 حجز معاينة' : '📅 Book Viewing Tour',
+    lang === 'so' ? '📍 Guryaha Baydhabo' : lang === 'ar' ? '📍 بيوت بيدوا' : '📍 Baidoa Homes',
     lang === 'so' ? '🏠 Guri Jaban' : lang === 'ar' ? '🏠 بيت رخيص' : '🏠 Affordable House',
-    lang === 'so' ? '✨ Villa Raaxo leh' : lang === 'ar' ? '✨ فيلا فاخرة' : '✨ Luxury Villa',
-    lang === 'so' ? '💳 Bixi Kirada' : lang === 'ar' ? '💳 سداد الإيجار' : '💳 Pay Rent',
     lang === 'so' ? '🏡 Noqo Mulkiile' : lang === 'ar' ? '🏡 ترقية كمالك' : '🏡 Become Landlord'
   ];
 

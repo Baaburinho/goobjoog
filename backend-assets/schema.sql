@@ -11,8 +11,7 @@ CREATE TABLE roles (
 INSERT INTO roles (name) VALUES 
 ('administrator'),
 ('landlord'),
-('tenant'),
-('accountant')
+('tenant')
 ON CONFLICT (name) DO NOTHING;
 
 -- 2. USERS TABLE
@@ -129,23 +128,21 @@ CREATE TABLE rental_applications (
     UNIQUE(tenant_id, house_id, status) -- Prevent multiple active applications for the same house
 );
 
--- 7. TRANSACTIONS (ESCROW & PAYMENT TRACKING)
-CREATE TABLE transactions (
+-- 7. HOUSE TOURS & VIEWING BOOKINGS TABLE
+CREATE TABLE house_tours (
     id TEXT PRIMARY KEY,
-    application_id UUID NOT NULL REFERENCES rental_applications(id),
-    obligation_type TEXT DEFAULT 'Application' CHECK (obligation_type IN ('Application', 'RentPayment')),
+    house_id UUID REFERENCES houses(id) ON DELETE CASCADE,
     house_title TEXT NOT NULL,
-    sender_phone TEXT NOT NULL,
-    amount NUMERIC NOT NULL,
-    commission_amount NUMERIC DEFAULT 0,
-    payout_amount NUMERIC DEFAULT 0,
-    ref_number TEXT NOT NULL,
-    gateway TEXT NOT NULL CHECK (gateway IN ('evc_plus', 'zaad', 'sahal', 'card')),
-    status TEXT DEFAULT 'created' CHECK (status IN ('created', 'pending', 'processing', 'successful', 'failed', 'cancelled', 'expired', 'refunded')),
-    failure_reason TEXT,
-    verified BOOLEAN DEFAULT FALSE,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
-    completed_time TIMESTAMPTZ
+    tenant_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    tenant_name TEXT NOT NULL,
+    tenant_phone TEXT NOT NULL,
+    landlord_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    tour_date DATE NOT NULL,
+    tour_time_slot VARCHAR(20) NOT NULL CHECK (tour_time_slot IN ('morning', 'afternoon', 'evening')),
+    tour_type VARCHAR(20) DEFAULT 'in_person' CHECK (tour_type IN ('in_person', 'video_call')),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
+    notes TEXT DEFAULT '',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 8. COMPLAINTS TABLE

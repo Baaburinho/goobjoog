@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.goobjoog.rents',
-  appName: 'hooosee-rents',
+  appName: 'GoobJoog',
   webDir: 'dist'
 };
 

@@ -18,6 +18,8 @@ interface SettingsPageProps {
   onClose: () => void;
   onUpdateUser?: (updated: Partial<UserProfile>) => void;
   addAuditLog?: (action: string, details: string) => void;
+  activeLayout?: 'tenant' | 'homeowner' | 'administrator' | 'financial_ledger';
+  setActiveLayout?: (layout: 'tenant' | 'homeowner' | 'administrator' | 'financial_ledger') => void;
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -27,7 +29,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   setLang,
   onClose,
   onUpdateUser,
-  addAuditLog
+  addAuditLog,
+  activeLayout,
+  setActiveLayout
 }) => {
   const t = translations[lang] || translations.en;
   const isArabic = lang === 'ar';
@@ -102,7 +106,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     return localStorage.getItem('goobjoog_biometric_lock_enabled') !== 'false';
   });
 
-  const handleBiometricToggle = (enabled: boolean) => {
+  const handleBiometricToggle = async (enabled: boolean) => {
+    if (enabled) {
+      // Test biometric verification before enabling
+      const success = await authenticateWithFingerprint(currentUser.username || currentUser.fullName);
+      if (!success) {
+        showToast(
+          lang === 'so' ? 'Xaqiijinta farta waa la diiday ama waa la joojiyay.' :
+          lang === 'ar' ? 'فشل التحقق من البصمة.' :
+          'Biometric verification failed or cancelled.',
+          true
+        );
+        return;
+      }
+    }
+
     setBiometricLockEnabled(enabled);
     localStorage.setItem('goobjoog_biometric_lock_enabled', enabled ? 'true' : 'false');
     if (addAuditLog) {
@@ -364,7 +382,55 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 </div>
               </div>
 
-              {/* Personal Details Form */}
+              {/* Account View Mode Switcher (Tenant vs Landlord Mode) */}
+              {setActiveLayout && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 rounded-2xl border border-blue-200 dark:border-blue-800 space-y-3">
+                  <div>
+                    <span className="text-xs font-black text-blue-900 dark:text-blue-200 block">
+                      🔀 {lang === 'so' ? 'Habka Muuqaalka Akoonka (Account View Mode)' : 'Account View Mode Switcher'}
+                    </span>
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                      {lang === 'so' ? 'U beddel muuqaalka Kireystaha ama Mulkiilaha ee nidaamka:' : 'Switch between Tenant experience and Landlord management workspace:'}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveLayout('tenant');
+                        showToast(lang === 'so' ? 'U beddelay habka Kireystaha (Tenant Mode)' : 'Switched to Tenant View');
+                      }}
+                      className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border ${
+                        activeLayout === 'tenant'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-md font-black'
+                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>🏠</span>
+                      <span>{t.navHouses || 'Tenant View'}</span>
+                    </button>
+
+                    {((currentUser?.roles || []).includes('homeowner') || (currentUser?.roles || []).includes('landlord' as any) || currentUser?.upgradeStatus === 'approved' || (currentUser?.roles || []).includes('administrator') || (currentUser?.roles || []).includes('admin' as any)) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveLayout('homeowner');
+                          showToast(lang === 'so' ? 'U beddelay habka Mulkiilaha (Landlord Mode)' : 'Switched to Landlord View');
+                        }}
+                        className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border ${
+                          activeLayout === 'homeowner'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-md font-black'
+                            : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>🏡</span>
+                        <span>{t.navLandlord || 'Landlord View'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">{t.fullName} *</label>
