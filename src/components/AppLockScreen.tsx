@@ -96,20 +96,14 @@ export const AppLockScreen: React.FC<AppLockScreenProps> = ({
       {/* Floating System-Style Biometric Modal Sheet Card */}
       <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[36px] shadow-2xl border border-slate-200/80 dark:border-slate-800 p-8 flex flex-col items-center text-center space-y-6 animate-scaleUp my-auto">
         
-        {/* App Emblem Badge */}
-        <div className="flex flex-col items-center space-y-1">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 p-2 shadow-lg shadow-blue-500/30 flex items-center justify-center">
-            <img 
-              src="/goobjoog_logo.png" 
-              alt="GoobJoog" 
-              className="w-full h-full object-contain filter drop-shadow"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-            <span className="text-xl">🏠</span>
+        {/* App Emblem Badge - Clean Single Vector Emblem */}
+        <div className="flex flex-col items-center space-y-1.5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-700 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path d="M12 3L2 12h3v8h6v-5h2v5h6v-8h3L12 3z"/>
+            </svg>
           </div>
-          <span className="text-xs font-black tracking-tight text-slate-800 dark:text-slate-200 mt-1">
+          <span className="text-xs font-black tracking-tight text-slate-800 dark:text-slate-200">
             GoobJoog
           </span>
         </div>
